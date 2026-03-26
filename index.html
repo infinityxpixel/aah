@@ -61,22 +61,18 @@
             background: #333;
             border-radius: 10px;
         }
-
-        input::placeholder {
-            color: #555;
-        }
         
         .animate-pop {
-            animation: pop 0.3s ease-out forwards;
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         
         @keyframes pop {
-            0% { transform: scale(0.95); opacity: 0; }
+            0% { transform: scale(0.92); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
         .winner-glow {
-            box-shadow: 0 0 40px rgba(34, 197, 94, 0.2);
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
@@ -84,8 +80,9 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useCallback } = React;
+        const { useState, useEffect, useMemo } = React;
         
+        // --- Icons ---
         const Trophy = () => (
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
         );
@@ -140,7 +137,7 @@
                 if (btoa(authInput.username) === key && btoa(authInput.password) === key) {
                     setGameState('setup');
                 } else {
-                    setError('Invalid credentials. Try again.');
+                    setError('Invalid credentials.');
                 }
             };
 
@@ -152,12 +149,14 @@
                     ...p, score: 0, hand: whiteDeck.slice(idx * 15, (idx * 15) + 15) 
                 }));
 
+                const selectedBlackCards = blackDeck.slice(0, MAX_ROUNDS);
+
                 setDeck({ 
                     white: whiteDeck.slice(30), 
-                    black: blackDeck.slice(0, MAX_ROUNDS) 
+                    black: selectedBlackCards 
                 });
                 setPlayers(initialPlayers);
-                setRoundBlackCard(blackDeck[0]);
+                setRoundBlackCard(selectedBlackCards[0]);
                 setRoundNumber(1);
                 setCurrentPlayerIdx(0);
                 setAllSubmissions([]);
@@ -166,17 +165,17 @@
             };
 
             const submitResponse = () => {
-                // Save current submission
+                // TRIPLE TEST FIX: Explicitly capture state at time of submission
                 const newSub = {
+                    id: `round-${roundNumber}-p${currentPlayerIdx}-${Date.now()}`,
                     playerIdx: currentPlayerIdx,
                     playerName: players[currentPlayerIdx].name,
-                    blackCard: roundBlackCard,
+                    blackCard: { ...roundBlackCard },
                     whiteCard: selectedWhiteCard,
                     round: roundNumber,
                     winner: false
                 };
                 
-                // Remove card from player hand
                 const updatedPlayers = players.map((p, idx) => 
                     idx === currentPlayerIdx ? { ...p, hand: p.hand.filter(c => c !== selectedWhiteCard) } : p
                 );
@@ -185,32 +184,37 @@
                 setAllSubmissions(prev => [...prev, newSub]);
                 setSelectedWhiteCard(null);
 
-                // Game Flow Logic
                 if (currentPlayerIdx === 0) {
                     setCurrentPlayerIdx(1);
                 } else {
                     if (roundNumber < MAX_ROUNDS) {
-                        const nextRound = roundNumber + 1;
-                        setRoundNumber(nextRound);
+                        const nextRoundNum = roundNumber + 1;
+                        setRoundNumber(nextRoundNum);
                         setCurrentPlayerIdx(0);
-                        // Access next card from the prepared deck
-                        setRoundBlackCard(deck.black[nextRound - 1]);
+                        setRoundBlackCard(deck.black[nextRoundNum - 1]);
                     } else {
                         setGameState('judging');
                     }
                 }
             };
 
-            const voteForSubmission = (submissionIdInFullList) => {
-                const updatedSubs = [...allSubmissions];
-                updatedSubs[submissionIdInFullList].winner = true;
-                
-                const winningPlayerIdx = updatedSubs[submissionIdInFullList].playerIdx;
-                const updatedPlayers = [...players];
-                updatedPlayers[winningPlayerIdx].score += 1;
+            const voteForSubmission = (submissionId) => {
+                // Update winners in submissions list
+                setAllSubmissions(prev => {
+                    const updated = prev.map(sub => 
+                        sub.id === submissionId ? { ...sub, winner: true } : sub
+                    );
+                    
+                    // Update scores based on the new winner
+                    const winningSub = updated.find(s => s.id === submissionId);
+                    setPlayers(prevPlayers => {
+                        const newPlayers = [...prevPlayers];
+                        newPlayers[winningSub.playerIdx].score += 1;
+                        return newPlayers;
+                    });
 
-                setAllSubmissions(updatedSubs);
-                setPlayers(updatedPlayers);
+                    return updated;
+                });
 
                 if (votingRoundIndex < MAX_ROUNDS) {
                     setVotingRoundIndex(prev => prev + 1);
@@ -219,7 +223,7 @@
                 }
             };
 
-            // Memoized grouped submissions to ensure UI stays consistent
+            // VERIFICATION: Filter strictly for the current voting round
             const currentVotingGroup = useMemo(() => {
                 return allSubmissions.filter(sub => sub.round === votingRoundIndex);
             }, [allSubmissions, votingRoundIndex]);
@@ -302,7 +306,7 @@
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 w-full">
                             {players[currentPlayerIdx].hand.map((card, i) => (
                                 <button 
-                                    key={`${roundNumber}-${currentPlayerIdx}-${i}`} 
+                                    key={`hand-${currentPlayerIdx}-${card}-${i}`} 
                                     onClick={() => setSelectedWhiteCard(card)} 
                                     className={`white-card p-6 text-left font-bold rounded-2xl transition-all flex flex-col justify-between hover:-translate-y-2 active:scale-95 ${selectedWhiteCard === card ? 'ring-8 ring-blue-500 scale-105 z-10' : 'opacity-95'}`}
                                 >
@@ -326,7 +330,7 @@
 
             if (gameState === 'judging') {
                 return (
-                    <div className="min-h-screen p-6 max-w-5xl mx-auto flex flex-col items-center justify-center space-y-12 animate-pop">
+                    <div key={`voting-round-${votingRoundIndex}`} className="min-h-screen p-6 max-w-5xl mx-auto flex flex-col items-center justify-center space-y-12 animate-pop">
                         <div className="text-center space-y-4">
                             <div className="inline-block bg-neutral-800 px-6 py-2 rounded-full border border-neutral-700 text-xs font-black uppercase tracking-widest text-neutral-400">
                                 Judging Round {votingRoundIndex} of {MAX_ROUNDS}
@@ -336,27 +340,23 @@
                         
                         <div className="w-full max-w-4xl space-y-8">
                            <div className="grid md:grid-cols-2 gap-8">
-                                {currentVotingGroup.map((sub) => {
-                                    // Find its absolute index in the master submissions array
-                                    const fullIdx = allSubmissions.findIndex(s => s === sub);
-                                    return (
-                                        <div key={`vote-${fullIdx}`} className="group relative animate-pop">
-                                            <div className="absolute -top-4 left-6 bg-white text-black px-4 py-1 rounded-full text-[10px] font-black uppercase z-20">Option</div>
-                                            <button 
-                                                onClick={() => voteForSubmission(fullIdx)}
-                                                className="w-full p-10 bg-neutral-800 border-2 border-neutral-700 rounded-[40px] text-left transition-all hover:border-white hover:scale-[1.02] active:scale-95 flex flex-col justify-between h-full min-h-[300px]"
-                                            >
-                                                <p className="text-2xl font-bold leading-relaxed mb-10" 
-                                                   dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-4 py-1 rounded-xl mx-1 inline-block transform -rotate-1">${sub.whiteCard}</span>`) }} 
-                                                />
-                                                <div className="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
-                                                    <span className="font-black uppercase text-xs tracking-tighter">Choose this combo</span>
-                                                    <ChevronRight />
-                                                </div>
-                                            </button>
-                                        </div>
-                                    );
-                                })}
+                                {currentVotingGroup.map((sub) => (
+                                    <div key={sub.id} className="group relative">
+                                        <div className="absolute -top-4 left-6 bg-white text-black px-4 py-1 rounded-full text-[10px] font-black uppercase z-20">Option</div>
+                                        <button 
+                                            onClick={() => voteForSubmission(sub.id)}
+                                            className="w-full p-10 bg-neutral-800 border-2 border-neutral-700 rounded-[40px] text-left transition-all hover:border-white hover:scale-[1.02] active:scale-95 flex flex-col justify-between h-full min-h-[300px]"
+                                        >
+                                            <p className="text-2xl font-bold leading-relaxed mb-10" 
+                                               dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-4 py-1 rounded-xl mx-1 inline-block transform -rotate-1">${sub.whiteCard}</span>`) }} 
+                                            />
+                                            <div className="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
+                                                <span className="font-black uppercase text-xs tracking-tighter">Choose this combo</span>
+                                                <ChevronRight />
+                                            </div>
+                                        </button>
+                                    </div>
+                                ))}
                            </div>
                         </div>
                         
@@ -396,7 +396,7 @@
                             <h2 className="text-3xl font-black italic uppercase tracking-tighter border-b border-neutral-800 pb-4">Hall of Fame</h2>
                             <div className="grid gap-8">
                                 {winningSubmissions.map((sub, i) => (
-                                    <div key={`winner-hall-${i}`} className="bg-neutral-800/50 p-10 rounded-[40px] border border-neutral-800 flex flex-col md:flex-row md:items-center gap-8 winner-glow animate-pop" style={{ animationDelay: `${i * 0.1}s` }}>
+                                    <div key={sub.id} className="bg-neutral-800/50 p-10 rounded-[40px] border border-neutral-800 flex flex-col md:flex-row md:items-center gap-8 winner-glow animate-pop" style={{ animationDelay: `${i * 0.1}s` }}>
                                         <div className="text-4xl font-black opacity-10 italic">#{sub.round}</div>
                                         <div className="flex-1">
                                             <p className="text-3xl font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-4 py-1.5 rounded-xl mx-1 shadow-md inline-block transform -rotate-1">${sub.whiteCard}</span>`) }} />
