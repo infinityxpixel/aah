@@ -13,23 +13,54 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+        
         body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #171717; 
+            font-family: 'Ubuntu', sans-serif; 
+            background-color: #111; 
             margin: 0;
             padding: 0;
             color: white;
+            overflow-x: hidden;
         }
+        
         .black-card {
             background-color: #000;
             border: 2px solid #262626;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            width: 18.9rem;
+            height: 25.2rem;
         }
+        
         .white-card {
             background-color: #fff;
             color: #000;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            min-height: 14rem;
+        }
+
+        .black-card-text {
+            font-size: 1.65rem;
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+        .white-card-text {
+            font-size: 1.1rem;
+            line-height: 1.3;
+            font-weight: 700;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+
+        input::placeholder {
+            color: #555;
         }
     </style>
 </head>
@@ -37,43 +68,48 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
         
-        // Custom SVG Icons
         const Trophy = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
         );
-        const Play = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        );
-        const RotateCcw = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        );
+        const Play = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+        const RotateCcw = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
+        const Lock = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-neutral-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
 
         const CARDS_DATABASE = {
             blackCards: [
-                { text: "What's that smell?", pick: 1 },
-                { text: "I drink to forget _.", pick: 1 },
-                { text: "That's how I want to die: _.", pick: 1 },
-                { text: "What's my secret superpower?", pick: 1 },
-                { text: "Why am I sticky?", pick: 1 },
-                { text: "Maybe she's born with it. Maybe it's _.", pick: 1 },
-                { text: "I got 99 problems but _ ain't one.", pick: 1 },
-                { text: "What is Batman's guilty pleasure?", pick: 1 },
-                { text: "Why am I so broke?", pick: 1 },
-                { text: "What gives me uncontrollable gas?", pick: 1 },
-                { text: "What's the next Happy Meal toy?", pick: 1 },
-                { text: "Science will never explain _.", pick: 1 }
+                { text: "What's that smell?" }, { text: "I drink to forget _." }, { text: "What's my secret superpower?" },
+                { text: "Why am I sticky?" }, { text: "Maybe she's born with it. Maybe it's _." }, { text: "I got 99 problems but _ ain't one." },
+                { text: "What is Batman's guilty pleasure?" }, { text: "Why am I so broke?" }, { text: "What gives me uncontrollable gas?" },
+                { text: "What's the next Happy Meal toy?" }, { text: "Science will never explain _." }, { text: "TSA guidelines now prohibit _ on airplanes." },
+                { text: "What's a girl's best friend?" }, { text: "What's the gift that keeps on giving?" }, { text: "Next on ESPN2: The _ World Series." },
+                { text: "What would Grandma find disturbing, yet oddly charming?" }, { text: "White people like _." }, { text: "What did I get for Christmas?" },
+                { text: "My gym teacher got fired for _." }, { text: "What's my middle name?" }, { text: "The class field trip was ruined by _." },
+                { text: "What's the secret to a long-lasting marriage?" }, { text: "What's the new national anthem?" }, { text: "When I am President, I will create the Department of _." },
+                { text: "What's the best thing about being a billionaire?" }, { text: "Every family has a secret, ours is _." }, { text: "Wait, if you're here, then who's _?" },
+                { text: "What are my parents hiding from me?" }, { text: "Coming to Broadway this season: _: The Musical." }, { text: "He who controls _ controls the universe." },
+                { text: "What's the most emo thing ever?" }, { text: "I'm not like other girls. I _." }, { text: "What's the new fad diet?" },
+                { text: "What's the most iconic duo?" }, { text: "Why can't I sleep at night?" }, { text: "A romantic, candlelit dinner would be incomplete without _." },
+                { text: "What's my anti-drug?" }, { text: "Instead of coal, Santa now gives the naughty children _." }, { text: "What's the most embarrassing thing in my search history?" },
+                { text: "In the new Disney movie, Elsa finds out that _ is her true love." }, { text: "The title of my autobiography is: _." }, { text: "What's the real reason I'm late for work?" },
+                { text: "I never truly understood _ until I encountered _." }, { text: "What's the loudest sound in the world?" }, { text: "What's the best way to spice up your love life?" },
+                { text: "Life for American Indians was changed forever when the White Man introduced them to _." }, { text: "In its new self-help book, Scientology promises to help you overcome _." },
+                { text: "What is the most awkward thing to say during a first date?" }, { text: "Rumor has it that Beyonce's next album is all about _." }, { text: "What do I want to be when I grow up?" },
+                { text: "I don't know why everyone is so obsessed with _." }, { text: "What is the secret ingredient in my grandma's famous stew?" }
             ],
             whiteCards: [
-                "A bit of slap and tickle.", "Active listening.", "An oversized lollipop.", "Dying.", "Eating all of the cookies.", "Friendly fire.", "Grandma.", "Hormone injections.", "My soul.", "Natural selection.", "Old-people smell.", "Poor life choices.", "Puberty.", "The Pope.", "Waiting till marriage.", "Florida Man.", "Student loans.", "Existential dread.", "Taco Bell.", "A tiny horse.", "Tax fraud.", "Gluten-free bread.", "Meme culture.", "The truth.", "A lie.", "Actually taking candy from a baby.", "A middle-aged man on a roller coaster."
+                "A bit of slap and tickle.", "Active listening.", "An oversized lollipop.", "Eating all of the cookies.", "Friendly fire.", "Grandma.", "Hormone injections.", "My soul.", "Natural selection.", "Old-people smell.", "Poor life choices.", "Puberty.", "The Pope.", "Waiting till marriage.", "Florida Man.", "Student loans.", "Existential dread.", "Taco Bell.", "A tiny horse.", "Tax fraud.", "Gluten-free bread.", "Meme culture.", "The truth.", "A lie.", "Actually taking candy from a baby.", "A middle-aged man on a roller coaster.", "A salty surprise.", "The glass ceiling.", "The Patriarchy.", "Goblins.", "Being fabulous.", "Passive-aggressive Post-it notes.", "The Kool-Aid Man.", "Self-loathing.", "A literal mountain of cocaine.", "Fancy feast.", "Justin Bieber.", "An honest-to-god miracle.", "Glitter.", "Slightly too much eye contact.", "Awkward silence.", "The smell of fear.", "Total control.", "A disappointment to my parents.", "Hot cheese.", "Bees?", "Finger painting.", "The middle class.", "Emotional baggage.", "The wifi being down.", "Clickbait.", "Mansplaining.", "Avocado toast.", "Social media validation.", "An unsolicited photo.", "A time-traveling paradox.", "Catfishing.", "The simulation crashing.", "Cryptocurrency scams.", "A mid-life crisis.", "The ghost of Christmas past.", "Pure unadulterated chaos.", "Gentrification.", "A participation trophy.", "The deep state.", "Climate change.", "The uncanny valley.", "An interpretive dance about capitalism.", "A sentient sourdough starter.", "The 1%.", "A weirdly specific fetish.", "Being a functional adult.", "The constant screaming in my head.", "A long, sad look at a mirror.", "An aggressive squirrel.", "The sound of one hand clapping.", "Infinite loops.", "A glitch in the Matrix.", "Unfiltered thoughts.", "The taste of regret.", "A suspiciously cheap lawyer.", "Identity theft.", "A really bad tattoo.", "Aggressive yoga.", "The sheer audacity.", "A well-timed sound effect.", "An unexpected pregnancy.", "The French.", "A black hole.", "Spontaneous human combustion.", "A dramatic reenactment.", "The concept of time.", "A cursed image.", "Modern art.", "A poorly phrased compliment.", "A surprise party that no one attended.", "My inner demons.", "A bag of magic beans.", "An overpriced scented candle.", "A passive-aggressive email.", "The five-second rule.", "A microwave burrito.", "The subtle art of not giving a hoot.", "A perfectly executed high-five.", "The feeling of wet socks.", "A sudden realization.", "A box within a box.", "The screams of a thousand children.", "Nickelback.", "Kanye West.", "The entire Mormon Tabernacle Choir.", "Soup that's a little too hot.", "A bucket of fish heads.", "Exactly what you'd expect.", "A tiny, flying horse.", "The sweet, sweet taste of revenge."
             ]
         };
 
         const MAX_ROUNDS = 10;
 
         const App = () => {
-            const [gameState, setGameState] = useState('setup');
+            const [gameState, setGameState] = useState('auth');
+            const [authInput, setAuthInput] = useState({ username: '', password: '' });
+            const [error, setError] = useState('');
+
             const [players, setPlayers] = useState([
                 { id: 1, name: 'Player 1', score: 0, hand: [] },
                 { id: 2, name: 'Player 2', score: 0, hand: [] }
@@ -87,15 +123,25 @@
 
             const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
 
+            const handleLogin = (e) => {
+                e.preventDefault();
+                // Credentials encoded in Base64 for basic obfuscation
+                // cmVlc2hvZg== is "reeshof"
+                const key = "cmVlc2hvZg==";
+                if (btoa(authInput.username) === key && btoa(authInput.password) === key) {
+                    setGameState('setup');
+                } else {
+                    setError('Invalid credentials. Try again.');
+                }
+            };
+
             const startGame = () => {
                 const whiteDeck = shuffle(CARDS_DATABASE.whiteCards);
                 const blackDeck = shuffle(CARDS_DATABASE.blackCards);
                 const initialPlayers = players.map((p, idx) => ({
-                    ...p, 
-                    score: 0, 
-                    hand: whiteDeck.slice(idx * 12, (idx * 12) + 12) 
+                    ...p, score: 0, hand: whiteDeck.slice(idx * 15, (idx * 15) + 15) 
                 }));
-                setDeck({ white: whiteDeck.slice(24), black: blackDeck.slice(1) });
+                setDeck({ white: whiteDeck.slice(30), black: blackDeck.slice(1) });
                 setPlayers(initialPlayers);
                 setRoundBlackCard(blackDeck[0]);
                 setRoundNumber(1);
@@ -110,14 +156,15 @@
                     playerName: players[currentPlayerIdx].name,
                     blackCard: roundBlackCard,
                     whiteCard: selectedWhiteCard,
-                    voted: false
+                    round: roundNumber,
+                    winner: false
                 };
-                const newAllSubmissions = [...allSubmissions, newSub];
+                
                 const updatedPlayers = players.map((p, idx) => 
                     idx === currentPlayerIdx ? { ...p, hand: p.hand.filter(c => c !== selectedWhiteCard) } : p
                 );
-                
                 setPlayers(updatedPlayers);
+                setAllSubmissions(prev => [...prev, newSub]);
                 setSelectedWhiteCard(null);
 
                 if (currentPlayerIdx === 0) {
@@ -132,31 +179,82 @@
                         setGameState('judging');
                     }
                 }
-                setAllSubmissions(newAllSubmissions);
             };
 
-            const voteForSubmission = (idx) => {
+            const voteForSubmission = (roundNum, winnerIdxInList) => {
+                const updatedSubs = [...allSubmissions];
+                updatedSubs[winnerIdxInList].winner = true;
+                
+                const winningPlayerIdx = updatedSubs[winnerIdxInList].playerIdx;
                 const updatedPlayers = [...players];
-                updatedPlayers[allSubmissions[idx].playerIdx].score += 1;
-                setPlayers(updatedPlayers);
-                const updatedSubs = allSubmissions.map((s, i) => i === idx ? { ...s, voted: true } : s);
+                updatedPlayers[winningPlayerIdx].score += 1;
+
                 setAllSubmissions(updatedSubs);
-                if (updatedSubs.every(s => s.voted)) setGameState('winner');
+                setPlayers(updatedPlayers);
+
+                const roundsJudged = new Set(updatedSubs.filter(s => s.winner).map(s => s.round));
+                if (roundsJudged.size === MAX_ROUNDS) {
+                    setGameState('winner');
+                }
             };
+
+            const groupedSubmissions = useMemo(() => {
+                const groups = {};
+                allSubmissions.forEach(sub => {
+                    if (!groups[sub.round]) groups[sub.round] = [];
+                    groups[sub.round].push(sub);
+                });
+                return groups;
+            }, [allSubmissions]);
+
+            if (gameState === 'auth') return (
+                <div className="min-h-screen flex items-center justify-center p-6 bg-neutral-900">
+                    <form onSubmit={handleLogin} className="max-w-sm w-full bg-neutral-800 p-10 rounded-[40px] border border-neutral-700 shadow-2xl space-y-6 text-center">
+                        <div className="flex justify-center"><Lock /></div>
+                        <h2 className="text-3xl font-black uppercase italic tracking-tighter">Private Entry</h2>
+                        <div className="space-y-4 text-left">
+                            <div>
+                                <label className="text-[10px] font-black text-neutral-500 uppercase ml-4">Username</label>
+                                <input 
+                                    type="text"
+                                    placeholder="Enter username"
+                                    className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 font-bold text-white outline-none focus:ring-2 focus:ring-white transition-all mt-1" 
+                                    value={authInput.username}
+                                    onChange={(e) => setAuthInput({...authInput, username: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-neutral-500 uppercase ml-4">Password</label>
+                                <input 
+                                    type="password"
+                                    placeholder="••••••••"
+                                    className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 font-bold text-white outline-none focus:ring-2 focus:ring-white transition-all mt-1" 
+                                    value={authInput.password}
+                                    onChange={(e) => setAuthInput({...authInput, password: e.target.value})}
+                                />
+                            </div>
+                        </div>
+                        {error && <p className="text-red-500 text-xs font-bold">{error}</p>}
+                        <button type="submit" className="w-full bg-white text-black py-5 rounded-2xl font-black text-xl hover:bg-neutral-200 active:scale-95 transition-all mt-4 uppercase tracking-tighter">
+                            Login
+                        </button>
+                    </form>
+                </div>
+            );
 
             if (gameState === 'setup') return (
-                <div className="min-h-screen flex flex-col items-center justify-center p-6">
-                    <div className="max-w-md w-full text-center space-y-8">
+                <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-neutral-900">
+                    <div className="max-w-md w-full text-center space-y-10">
                         <div className="space-y-2">
-                            <h1 className="text-7xl font-black tracking-tighter uppercase italic text-white">APP</h1>
-                            <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs">Against Humanity</p>
+                            <h1 className="text-8xl font-black tracking-tighter uppercase italic text-white drop-shadow-lg leading-none">APP</h1>
+                            <p className="text-neutral-500 font-bold uppercase tracking-[0.3em] text-[10px]">Against Humanity</p>
                         </div>
-                        <div className="bg-neutral-800 p-8 rounded-3xl border border-neutral-700 shadow-2xl space-y-4">
+                        <div className="bg-neutral-800 p-8 rounded-[40px] border border-neutral-700 shadow-2xl space-y-6">
                             {players.map((p, i) => (
                                 <div key={p.id} className="text-left">
-                                    <label className="text-[10px] font-black text-neutral-500 uppercase ml-2">Player {i+1}</label>
+                                    <label className="text-[10px] font-black text-neutral-500 uppercase ml-4">Player {i+1}</label>
                                     <input 
-                                        className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 font-bold text-white outline-none focus:ring-2 focus:ring-white transition-all mt-1" 
+                                        className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 font-bold text-white outline-none focus:ring-2 focus:ring-white transition-all mt-1" 
                                         value={p.name} 
                                         onChange={(e) => {
                                             const n = [...players]; n[i].name = e.target.value; setPlayers(n);
@@ -164,8 +262,8 @@
                                     />
                                 </div>
                             ))}
-                            <button onClick={startGame} className="w-full bg-white text-black py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 hover:bg-neutral-200 active:scale-95 transition-all mt-4 uppercase">
-                                Start Game <Play />
+                            <button onClick={startGame} className="w-full bg-white text-black py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 hover:bg-neutral-200 active:scale-95 transition-all mt-4 uppercase tracking-tighter">
+                                Start Battle <Play />
                             </button>
                         </div>
                     </div>
@@ -174,87 +272,126 @@
 
             if (gameState === 'play') return (
                 <div className="min-h-screen flex flex-col">
-                    <header className="p-4 border-b border-neutral-800 flex justify-between bg-neutral-900/80 sticky top-0 z-50 backdrop-blur-md">
-                        <div className="font-black text-xl tracking-tighter italic">AAH</div>
-                        <div className="text-xs font-black uppercase tracking-widest text-neutral-400 self-center">
-                            ROUND {roundNumber} / {MAX_ROUNDS} • <span className="text-white">{players[currentPlayerIdx].name}'s Turn</span>
+                    <header className="p-4 border-b border-neutral-800 flex justify-between bg-neutral-900/90 sticky top-0 z-50 backdrop-blur-md">
+                        <div className="font-black text-2xl tracking-tighter italic">AAH</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 self-center bg-neutral-800 px-4 py-2 rounded-full border border-neutral-700">
+                            ROUND {roundNumber} / {MAX_ROUNDS} • <span className="text-white">{players[currentPlayerIdx].name}</span>
                         </div>
                     </header>
-                    <main className="p-6 max-w-5xl mx-auto w-full flex flex-col items-center gap-10 pb-32">
-                        <div className="black-card w-64 h-80 rounded-2xl p-6 flex flex-col justify-between">
-                            <p className="text-xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: roundBlackCard?.text.replace(/_/g, '<span class="border-b-2 border-white px-5 mx-1"></span>') }} />
-                            <span className="text-[10px] font-black opacity-20 uppercase tracking-widest">App Against Humanity</span>
+                    <main className="p-6 max-w-[90rem] mx-auto w-full flex flex-col items-center gap-12 pb-40">
+                        <div className="black-card rounded-[32px] p-8 flex flex-col justify-between transform -rotate-1">
+                            <p className="black-card-text" dangerouslySetInnerHTML={{ __html: roundBlackCard?.text.replace(/_/g, '<span class="border-b-4 border-white px-8 mx-1 inline-block min-w-[100px]"></span>') }} />
+                            <span className="text-[11px] font-black opacity-30 uppercase tracking-widest">App Against Humanity</span>
                         </div>
                         
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 w-full">
                             {players[currentPlayerIdx].hand.map((card, i) => (
                                 <button 
                                     key={i} 
                                     onClick={() => setSelectedWhiteCard(card)} 
-                                    className={`white-card aspect-[3/4] p-4 text-left font-bold text-sm rounded-xl transition-all flex flex-col justify-between hover:-translate-y-1 active:scale-95 ${selectedWhiteCard === card ? 'ring-4 ring-blue-500 scale-105 z-10' : 'opacity-95'}`}
+                                    className={`white-card p-6 text-left font-bold rounded-2xl transition-all flex flex-col justify-between hover:-translate-y-2 active:scale-95 ${selectedWhiteCard === card ? 'ring-8 ring-blue-500 scale-105 z-10' : 'opacity-95'}`}
                                 >
-                                    <span>{card}</span>
-                                    <span className="text-[8px] font-black opacity-20 uppercase">AAH</span>
+                                    <span className="white-card-text">{card}</span>
+                                    <span className="text-[9px] font-black opacity-20 uppercase tracking-tighter">AAH</span>
                                 </button>
                             ))}
                         </div>
                     </main>
-                    <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-neutral-900 via-neutral-900/80 flex justify-center z-50">
+                    <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center z-50">
                         <button 
                             disabled={!selectedWhiteCard} 
                             onClick={submitResponse} 
-                            className="w-full max-w-xs py-4 bg-white text-black font-black rounded-2xl disabled:opacity-30 uppercase shadow-2xl hover:bg-neutral-200 active:scale-95 transition-all"
+                            className="w-full max-w-sm py-6 bg-white text-black font-black rounded-3xl disabled:opacity-20 uppercase shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:bg-neutral-200 active:scale-95 transition-all text-2xl tracking-tighter"
                         >
-                            {selectedWhiteCard ? 'Submit Card' : 'Pick a Card'}
+                            {selectedWhiteCard ? 'Confirm Card' : 'Select an Answer'}
                         </button>
                     </div>
                 </div>
             );
 
             if (gameState === 'judging') return (
-                <div className="min-h-screen p-6 max-w-2xl mx-auto space-y-12 pb-32">
-                    <div className="text-center space-y-2 pt-8">
-                        <h2 className="text-4xl font-black italic tracking-tighter uppercase">The Verdict</h2>
-                        <p className="text-neutral-500 font-bold uppercase text-[10px] tracking-widest">Vote for the funniest pairings</p>
+                <div className="min-h-screen p-6 max-w-4xl mx-auto space-y-16 pb-40">
+                    <div className="text-center space-y-3 pt-12">
+                        <h2 className="text-5xl font-black italic tracking-tighter uppercase leading-none">The Grand Jury</h2>
+                        <p className="text-neutral-500 font-bold uppercase text-xs tracking-[0.4em]">Vote for the funniest pair in every round</p>
                     </div>
-                    {allSubmissions.map((sub, i) => (
-                        <div key={i} className={`p-8 bg-neutral-800 border-2 rounded-3xl transition-all shadow-xl ${sub.voted ? 'opacity-40 grayscale border-green-500/50' : 'border-neutral-700'}`}>
-                            <div className="text-[10px] font-black text-neutral-500 uppercase mb-4 tracking-widest">Round {Math.floor(i/2) + 1} • {sub.playerName}'s Choice</div>
-                            <p className="text-2xl font-bold mb-8 leading-relaxed" dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-2 py-0.5 rounded-lg mx-1 shadow-lg">${sub.whiteCard}</span>`) }} />
-                            {!sub.voted && (
-                                <button onClick={() => voteForSubmission(i)} className="w-full py-4 bg-white text-black font-black rounded-2xl hover:bg-neutral-200 transition-all uppercase tracking-tighter">
-                                    Vote as Funniest
-                                </button>
-                            )}
-                        </div>
-                    ))}
+                    
+                    {Object.keys(groupedSubmissions).map((roundNum) => {
+                        const roundSubs = groupedSubmissions[roundNum];
+                        const isRoundJudged = roundSubs.some(s => s.winner);
+                        
+                        return (
+                            <div key={roundNum} className="space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-[2px] flex-1 bg-neutral-800"></div>
+                                    <h3 className="text-sm font-black text-neutral-500 uppercase tracking-widest">Round {roundNum}</h3>
+                                    <div className="h-[2px] flex-1 bg-neutral-800"></div>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    {roundSubs.map((sub) => {
+                                        const globalIdx = allSubmissions.indexOf(sub);
+                                        return (
+                                            <div key={globalIdx} className={`p-8 bg-neutral-800 border-2 rounded-[40px] transition-all relative overflow-hidden flex flex-col justify-between ${sub.winner ? 'border-green-500 ring-4 ring-green-500/20' : isRoundJudged ? 'opacity-30 grayscale border-transparent' : 'border-neutral-700 hover:border-neutral-500'}`}>
+                                                <p className="text-2xl font-bold leading-relaxed mb-10" dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-4 py-1.5 rounded-xl mx-1 shadow-xl inline-block transform -rotate-1">${sub.whiteCard}</span>`) }} />
+                                                
+                                                {!isRoundJudged && (
+                                                    <button onClick={() => voteForSubmission(parseInt(roundNum), globalIdx)} className="w-full py-5 bg-white text-black font-black rounded-2xl hover:bg-neutral-200 transition-all uppercase tracking-tighter text-base">
+                                                        Vote this pair
+                                                    </button>
+                                                )}
+                                                {sub.winner && (
+                                                    <div className="bg-green-500 text-black py-4 rounded-2xl font-black text-center uppercase tracking-tighter text-sm">Winning Combo</div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             );
 
             if (gameState === 'winner') {
                 const winner = players[0].score >= players[1].score ? players[0] : players[1];
                 const isTie = players[0].score === players[1].score;
+                const winningSubmissions = allSubmissions.filter(s => s.winner);
+
                 return (
-                    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-10">
-                        <div className="animate-bounce">
+                    <div className="min-h-screen flex flex-col p-8 md:p-12 space-y-16 custom-scrollbar overflow-y-auto">
+                        <div className="flex flex-col items-center text-center space-y-4 pt-10">
                             <Trophy />
+                            <h1 className="text-7xl font-black uppercase italic tracking-tighter leading-none">{isTie ? "It's a Draw" : `${winner.name} Wins!`}</h1>
+                            <div className="flex gap-16 pt-4">
+                                {players.map(p => (
+                                    <div key={p.id} className="space-y-1">
+                                        <div className="text-[11px] text-neutral-500 font-black uppercase tracking-widest">{p.name}</div>
+                                        <div className="text-7xl font-black">{p.score}</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <h1 className="text-6xl font-black uppercase italic tracking-tighter">{isTie ? "It's a Draw" : `${winner.name} Wins!`}</h1>
-                            <p className="text-neutral-500 font-bold uppercase tracking-[0.4em] text-xs">Humanity has been defeated</p>
+
+                        <div className="max-w-4xl mx-auto w-full space-y-8">
+                            <h2 className="text-3xl font-black italic uppercase tracking-tighter border-b border-neutral-800 pb-4">Hall of Fame</h2>
+                            <div className="grid gap-8">
+                                {winningSubmissions.map((sub, i) => (
+                                    <div key={i} className="bg-neutral-800/50 p-10 rounded-[40px] border border-neutral-800 flex flex-col md:flex-row md:items-center gap-8">
+                                        <div className="text-4xl font-black opacity-10 italic">#{sub.round}</div>
+                                        <div className="flex-1">
+                                            <p className="text-3xl font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-4 py-1.5 rounded-xl mx-1 shadow-md inline-block transform -rotate-1">${sub.whiteCard}</span>`) }} />
+                                            <div className="text-[11px] font-black uppercase tracking-[0.2em] text-neutral-500 mt-6">Selected by {sub.playerName}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex gap-16">
-                            {players.map(p => (
-                                <div key={p.id} className="space-y-1">
-                                    <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">{p.name}</div>
-                                    <div className="text-6xl font-black">{p.score}</div>
-                                    <div className="text-[10px] text-neutral-600 font-bold uppercase">Points</div>
-                                </div>
-                            ))}
+
+                        <div className="flex justify-center pb-20">
+                            <button onClick={() => setGameState('setup')} className="bg-white text-black px-20 py-8 rounded-3xl font-black text-3xl flex items-center gap-5 hover:bg-neutral-200 transition-all active:scale-95 shadow-2xl uppercase tracking-tighter">
+                                Play Again <RotateCcw />
+                            </button>
                         </div>
-                        <button onClick={() => setGameState('setup')} className="bg-white text-black px-12 py-5 rounded-3xl font-black text-xl flex items-center gap-3 hover:bg-neutral-200 transition-all active:scale-95 shadow-2xl uppercase tracking-tighter">
-                            Rematch <RotateCcw />
-                        </button>
                     </div>
                 );
             }
