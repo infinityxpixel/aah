@@ -1,0 +1,447 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Users, 
+  Trophy, 
+  Play, 
+  Plus, 
+  UserPlus, 
+  ChevronRight, 
+  RotateCcw,
+  Info,
+  CheckCircle2
+} from 'lucide-react';
+
+/**
+ * CARDS DATA
+ * Expanded collection of prompts (Black Cards) and responses (White Cards).
+ */
+const CARDS_DATABASE = {
+  blackCards: [
+    { text: "What's that smell?", pick: 1 },
+    { text: "I drink to forget _.", pick: 1 },
+    { text: "That's how I want to die: _.", pick: 1 },
+    { text: "What's the next Happy Meal toy?", pick: 1 },
+    { text: "What's my secret superpower?", pick: 1 },
+    { text: "What did I bring back from Mexico?", pick: 1 },
+    { text: "Why am I sticky?", pick: 1 },
+    { text: "Step 1: _. Step 2: _. Step 3: Profit.", pick: 2 },
+    { text: "During sex, I like to think about _.", pick: 1 },
+    { text: "What's my anti-drug?", pick: 1 },
+    { text: "What's the new fad diet?", pick: 1 },
+    { text: "I'm not like other girls. I _.", pick: 1 },
+    { text: "What ended my last relationship?", pick: 1 },
+    { text: "He who controls _ controls the universe.", pick: 1 },
+    { text: "What gives me uncontrollable gas?", pick: 1 },
+    { text: "In the new Disney movie, Elsa finds out that _ is actually _.", pick: 2 },
+    { text: "Coming to Broadway this season: _: The Musical.", pick: 1 },
+    { text: "What are my parents hiding from me?", pick: 1 },
+    { text: "What's the most emo thing ever?", pick: 1 },
+    { text: "TSA guidelines now prohibit _ on airplanes.", pick: 1 },
+    { text: "What's the gift that keeps on giving?", pick: 1 },
+    { text: "What's a girl's best friend?", pick: 1 },
+    { text: "Introducing the new X-box with _.", pick: 1 },
+    { text: "Next on ESPN2: The _ World Series.", pick: 1 },
+    { text: "That's right, I killed _. How you ask? _.", pick: 2 },
+    { text: "What would Grandma find disturbing, yet oddly charming?", pick: 1 },
+    { text: "I got 99 problems but _ ain't one.", pick: 1 },
+    { text: "What's the most iconic duo?", pick: 1 },
+    { text: "What's the real reason the dinosaurs went extinct?", pick: 1 },
+    { text: "White people like _.", pick: 1 },
+    { text: "In the distant future, historians will agree that _ was the beginning of the end.", pick: 1 },
+    { text: "What did I get for Christmas?", pick: 1 },
+    { text: "What's the best way to get over a breakup?", pick: 1 },
+    { text: "My gym teacher got fired for _.", pick: 1 },
+    { text: "This is the way the world ends. Not with a bang but with _.", pick: 1 },
+    { text: "What will always get you laid?", pick: 1 },
+    { text: "What's my middle name?", pick: 1 },
+    { text: "The class field trip was ruined by _.", pick: 1 },
+    { text: "Maybe she's born with it. Maybe it's _.", pick: 1 },
+    { text: "What's the secret to a long-lasting marriage?", pick: 1 },
+    { text: "Science will never explain _.", pick: 1 },
+    { text: "What's the new national anthem?", pick: 1 },
+    { text: "I'm sorry, Professor, but I couldn't finish my homework because of _.", pick: 1 },
+    { text: "What is Batman's guilty pleasure?", pick: 1 },
+    { text: "When I am President, I will create the Department of _.", pick: 1 },
+    { text: "What's the best thing about being a billionaire?", pick: 1 },
+    { text: "MTV's new reality show features eight washed-up celebrities living with _.", pick: 1 },
+    { text: "What's the most terrifying thing in the world?", pick: 1 },
+    { text: "And the Academy Award for _ goes to _.", pick: 2 },
+    { text: "What is my true calling?", pick: 1 },
+    { text: "Every family has a secret, ours is _.", pick: 1 },
+    { text: "Wait, if you're here, then who's _?", pick: 1 },
+    { text: "Why am I so broke?", pick: 1 }
+  ],
+  whiteCards: [
+    "A bit of slap and tickle.", "A middle-aged man on a roller coaster.", "Active listening.", "Actually taking candy from a baby.", "An oversized lollipop.", "Being a motherfucking sorcerer.", "Dying.", "Eating all of the cookies.", "Friendly fire.", "Getting naked and watching C-SPAN.", "Grandma.", "Hormone injections.", "Kids with ass cancer.", "Licking things to claim them as your own.", "Meatloaf, again.", "Morgan Freeman's voice.", "My soul.", "Natural selection.", "Object permanence.", "Old-people smell.", "Poor life choices.", "Puberty.", "Seppuku.", "Sexting.", "Smallpox blankets.", "The American Dream.", "The Blood of Christ.", "The Force.", "The invisible hand of the market.", "The miracle of childbirth.", "The Pope.", "Waiting till marriage.", "Waking up half-naked in a Denny's parking lot.", "Whipping it out.", "72 virgins.",
+    "A salty surprise.", "The glass ceiling.", "The Patriarchy.", "Goblins.", "Being fabulous.", "Passive-aggressive Post-it notes.", "The Kool-Aid Man.", "Self-loathing.", "A literal mountain of cocaine.", "Fancy feast.", "Justin Bieber.", "An honest-to-god miracle.", "Glitter.", "Slightly too much eye contact.", "Awkward silence.", "The smell of fear.", "Total control.", "A disappointment to my parents.", "Hot cheese.", "Bees?", "Finger painting.", "The middle class.", "Emotional baggage.", "My collection of high-end vibrators.", "The wifi being down.", "Clickbait.", "Mansplaining.", "The inevitable heat death of the universe.", "A time-traveling paradox.", "Avocado toast.", "Social media validation.", "An unsolicited dick pic.", "Existential dread.", "Taco Bell.", "A tiny horse.", "Tax fraud.", "Florida Man.", "The dark web.", "Catfishing.", "The simulation crashing.", "Student loans.", "Cryptocurrency scams.", "A mid-life crisis.", "The ghost of Christmas past.", "A sequence of bad events.", "Pure unadulterated chaos.", "Gentrification.", "A participation trophy.", "The deep state.", "Climate change.", "The uncanny valley.", "An interpretive dance about capitalism.", "Gluten-free bread.", "A sentient sourdough starter.", "The 1%.", "A weirdly specific fetish.", "Being a functional adult.", "The constant screaming in my head.", "A long, sad look at a mirror.", "Meme culture.", "An aggressive squirrel.", "The sound of one hand clapping.", "Infinite loops.", "A glitch in the Matrix.", "Unfiltered thoughts.", "The taste of regret.", "A suspiciously cheap lawyer.", "Identity theft.", "A really bad tattoo.", "Aggressive yoga.", "The sheer audacity of this bitch.", "A well-timed fart.", "An unexpected pregnancy.", "The French.", "A black hole.", "Spontaneous human combustion.", "A dramatic reenactment.", "The concept of time.", "A cursed image.", "Modern art.", "A poorly phrased compliment.", "The dark side of the Moon.", "A surprise party that no one attended.", "My inner demons.", "A bag of magic beans.", "The terrifying realization that I am in control of my own life.", "An overpriced scented candle.", "A passive-aggressive email.", "The five-second rule.", "A series of unfortunate events.", "The sheer weight of existence.", "A microwave burrito.", "The subtle art of not giving a f*ck.", "A perfectly executed high-five.", "The feeling of wet socks.", "A sudden realization.", "The truth.", "A lie.", "The unknown."
+  ]
+};
+
+const App = () => {
+  // --- Game State ---
+  const [gameState, setGameState] = useState('setup'); // setup, play, judging, winner
+  const [players, setPlayers] = useState([
+    { id: 1, name: 'Player 1', score: 0, hand: [] },
+    { id: 2, name: 'Player 2', score: 0, hand: [] },
+    { id: 3, name: 'Player 3', score: 0, hand: [] }
+  ]);
+  const [czarIndex, setCzarIndex] = useState(0);
+  const [currentBlackCard, setCurrentBlackCard] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [currentPlayerTurn, setCurrentPlayerTurn] = useState(0); 
+  const [selectedCards, setSelectedCards] = useState([]); 
+  const [winner, setWinner] = useState(null);
+  const [deck, setDeck] = useState({ black: [], white: [] });
+
+  // --- Setup Helpers ---
+  const addPlayer = () => {
+    if (players.length < 8) {
+      setPlayers([...players, { id: Date.now(), name: `Player ${players.length + 1}`, score: 0, hand: [] }]);
+    }
+  };
+
+  const removePlayer = (id) => {
+    if (players.length > 3) {
+      setPlayers(players.filter(p => p.id !== id));
+    }
+  };
+
+  const updatePlayerName = (id, name) => {
+    setPlayers(players.map(p => p.id === id ? { ...p, name } : p));
+  };
+
+  // --- Game Logic ---
+  const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
+
+  const startGame = () => {
+    const whiteDeck = shuffle(CARDS_DATABASE.whiteCards);
+    const blackDeck = shuffle(CARDS_DATABASE.blackCards);
+
+    let cardIdx = 0;
+    const initialPlayers = players.map(p => {
+      const hand = whiteDeck.slice(cardIdx, cardIdx + 10);
+      cardIdx += 10;
+      return { ...p, hand, score: 0 };
+    });
+
+    setDeck({
+      white: whiteDeck.slice(cardIdx),
+      black: blackDeck.slice(1)
+    });
+    setPlayers(initialPlayers);
+    setCurrentBlackCard(blackDeck[0]);
+    setCzarIndex(0);
+    setGameState('play');
+    
+    let firstPlayer = 0;
+    if (firstPlayer === 0) firstPlayer = 1; 
+    setCurrentPlayerTurn(firstPlayer);
+    setSubmissions([]);
+    setSelectedCards([]);
+  };
+
+  const nextTurn = () => {
+    const newWhiteDeck = [...deck.white];
+    const updatedPlayers = players.map(p => {
+      const missing = 10 - p.hand.length;
+      if (missing > 0 && newWhiteDeck.length >= missing) {
+        const newCards = newWhiteDeck.splice(0, missing);
+        return { ...p, hand: [...p.hand, ...newCards] };
+      }
+      return p;
+    });
+
+    const newCzarIndex = (czarIndex + 1) % players.length;
+    const nextBlackCard = deck.black[0] || shuffle(CARDS_DATABASE.blackCards)[0];
+
+    setPlayers(updatedPlayers);
+    setDeck({
+      white: newWhiteDeck.length > 0 ? newWhiteDeck : shuffle(CARDS_DATABASE.whiteCards),
+      black: deck.black.slice(1)
+    });
+    setCurrentBlackCard(nextBlackCard);
+    setCzarIndex(newCzarIndex);
+    setGameState('play');
+    setSubmissions([]);
+    setSelectedCards([]);
+    
+    let firstPlayer = 0;
+    if (firstPlayer === newCzarIndex) firstPlayer = (firstPlayer + 1) % players.length;
+    setCurrentPlayerTurn(firstPlayer);
+  };
+
+  const submitCards = () => {
+    const currentP = players[currentPlayerTurn];
+    
+    setSubmissions([...submissions, { 
+      playerId: currentP.id, 
+      cards: selectedCards 
+    }]);
+
+    const updatedPlayers = players.map((p, idx) => {
+      if (idx === currentPlayerTurn) {
+        return {
+          ...p,
+          hand: p.hand.filter(card => !selectedCards.includes(card))
+        };
+      }
+      return p;
+    });
+    setPlayers(updatedPlayers);
+    setSelectedCards([]);
+
+    let nextIdx = (currentPlayerTurn + 1) % players.length;
+    while (nextIdx === czarIndex || submissions.some(s => s.playerId === players[nextIdx].id)) {
+      if (submissions.length + 1 >= players.length - 1) {
+        setGameState('judging');
+        return;
+      }
+      nextIdx = (nextIdx + 1) % players.length;
+    }
+    setCurrentPlayerTurn(nextIdx);
+  };
+
+  const selectWinner = (submission) => {
+    const winningPlayer = players.find(p => p.id === submission.playerId);
+    const updatedPlayers = players.map(p => 
+      p.id === submission.playerId ? { ...p, score: p.score + 1 } : p
+    );
+    setPlayers(updatedPlayers);
+    setWinner({ player: winningPlayer, cards: submission.cards });
+    setGameState('winner');
+  };
+
+  if (gameState === 'setup') {
+    return (
+      <div className="min-h-screen bg-neutral-900 text-white p-6 flex flex-col items-center justify-center font-sans">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h1 className="text-5xl font-black mb-2 tracking-tighter uppercase">APP</h1>
+            <p className="text-neutral-400 font-medium">Against Humanity</p>
+          </div>
+
+          <div className="bg-neutral-800 rounded-2xl p-6 shadow-xl border border-neutral-700">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Users size={20} className="text-blue-400" />
+              Players ({players.length})
+            </h2>
+            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
+              {players.map((p, idx) => (
+                <div key={p.id} className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={p.name}
+                    onChange={(e) => updatePlayerName(p.id, e.target.value)}
+                    className="flex-1 bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    placeholder="Enter name..."
+                  />
+                  <button 
+                    onClick={() => removePlayer(p.id)}
+                    className="p-2 text-neutral-500 hover:text-red-400 transition-colors"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={addPlayer}
+                disabled={players.length >= 8}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-neutral-700 hover:bg-neutral-600 rounded-xl font-bold transition-all disabled:opacity-50"
+              >
+                <Plus size={18} /> Add Player
+              </button>
+              <button 
+                onClick={startGame}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-white text-black hover:bg-neutral-200 rounded-xl font-bold transition-all"
+              >
+                <Play size={18} fill="black" /> Start Game
+              </button>
+            </div>
+          </div>
+          
+          <p className="text-xs text-center text-neutral-500 px-4 leading-relaxed">
+            A party game for horrible people. <br />
+            Pass the device around. {CARDS_DATABASE.blackCards.length} Prompts & {CARDS_DATABASE.whiteCards.length} Responses loaded.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-900 text-white flex flex-col font-sans overflow-hidden">
+      <header className="bg-neutral-800/50 backdrop-blur-md border-b border-neutral-800 p-4 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <h2 className="font-black text-xl tracking-tighter">AAH</h2>
+            <div className="h-6 w-[1px] bg-neutral-700" />
+            <div className="flex gap-4 overflow-x-auto max-w-[200px] sm:max-w-none no-scrollbar">
+              {players.map((p, idx) => (
+                <div key={p.id} className={`flex flex-col items-center flex-shrink-0 ${idx === czarIndex ? 'text-blue-400' : 'text-neutral-500'}`}>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                    {idx === czarIndex ? 'Czar' : `P${idx+1}`}
+                  </span>
+                  <span className={`text-sm font-bold ${idx === czarIndex ? 'text-white' : ''}`}>
+                    {p.score}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button onClick={() => { if(confirm("End game?")) setGameState('setup')}} className="p-2 hover:bg-neutral-700 rounded-lg text-neutral-400">
+            <RotateCcw size={18} />
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 flex flex-col p-4 max-w-6xl mx-auto w-full gap-6 overflow-y-auto">
+        <div className="flex justify-center py-4">
+          <div className="w-64 h-80 bg-black border-2 border-neutral-800 rounded-2xl p-6 shadow-2xl transform transition-transform hover:rotate-1 duration-300 flex flex-col justify-between">
+            <p className="text-xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: currentBlackCard?.text.replace(/_/g, '<span class="border-b-2 border-white px-4 inline-block mx-1 min-w-[60px]"></span>') }} />
+            <div className="flex justify-between items-end">
+              <span className="text-[10px] font-black tracking-widest opacity-50 uppercase">APP AGAINST HUMANITY</span>
+              {currentBlackCard?.pick > 1 && (
+                <div className="bg-white text-black text-[10px] font-bold px-2 py-1 rounded-full">
+                  PICK {currentBlackCard.pick}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {gameState === 'play' && (
+          <div className="flex-1 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center bg-blue-600/10 py-2 rounded-xl border border-blue-600/20">
+              <h3 className="text-lg font-bold text-blue-400">
+                {players[currentPlayerTurn].name}'s Turn
+              </h3>
+              <p className="text-xs text-neutral-400">Pick {currentBlackCard.pick} card{currentBlackCard.pick > 1 ? 's' : ''}</p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 pb-32">
+              {players[currentPlayerTurn].hand.map((card, i) => {
+                const isSelected = selectedCards.includes(card);
+                const selectionIndex = selectedCards.indexOf(card) + 1;
+                
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedCards(selectedCards.filter(c => c !== card));
+                      } else if (selectedCards.length < currentBlackCard.pick) {
+                        setSelectedCards([...selectedCards, card]);
+                      }
+                    }}
+                    className={`relative aspect-[3/4] bg-white text-black rounded-xl p-4 text-left font-bold text-sm shadow-lg transition-all transform hover:-translate-y-1 ${isSelected ? 'ring-4 ring-blue-500 scale-105 z-10' : 'hover:bg-neutral-100 opacity-90 hover:opacity-100'}`}
+                  >
+                    {card}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-black">
+                        {selectionIndex}
+                      </div>
+                    )}
+                    <span className="absolute bottom-4 left-4 text-[8px] font-black opacity-30 uppercase tracking-tighter">APP AGAINST HUMANITY</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-50">
+              <button
+                disabled={selectedCards.length !== currentBlackCard.pick}
+                onClick={submitCards}
+                className="w-full py-4 bg-blue-600 disabled:bg-neutral-800 disabled:text-neutral-600 font-black rounded-2xl shadow-2xl flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/10"
+              >
+                CONFIRM SELECTION <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {gameState === 'judging' && (
+          <div className="flex-1 flex flex-col gap-6 animate-in zoom-in-95 duration-500">
+            <div className="text-center bg-yellow-600/10 py-2 rounded-xl border border-yellow-600/20">
+              <h3 className="text-lg font-bold text-yellow-400">
+                The Czar is Judging
+              </h3>
+              <p className="text-xs text-neutral-400">{players[czarIndex].name}, pick the winner.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
+              {submissions.map((sub, i) => (
+                <button
+                  key={i}
+                  onClick={() => selectWinner(sub)}
+                  className="bg-neutral-800 border-2 border-neutral-700 p-5 rounded-2xl flex flex-col gap-3 hover:border-yellow-500/50 hover:bg-neutral-700/50 transition-all text-left group shadow-lg"
+                >
+                  {sub.cards.map((card, ci) => (
+                    <div key={ci} className="bg-white text-black p-4 rounded-xl font-bold text-base shadow-sm group-hover:scale-[1.02] transition-transform">
+                      {card}
+                    </div>
+                  ))}
+                  <div className="mt-auto pt-2 border-t border-neutral-700/50 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[10px] font-black text-yellow-500 uppercase">SELECT THIS ONE</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {gameState === 'winner' && (
+          <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-in bounce-in duration-700 py-10">
+            <div className="text-center space-y-6 w-full px-4">
+              <div className="inline-block p-6 bg-yellow-500 rounded-full text-black mb-2 animate-bounce shadow-2xl">
+                <Trophy size={64} />
+              </div>
+              <h2 className="text-4xl font-black tracking-tight">{winner.player.name} Wins!</h2>
+              
+              <div className="bg-neutral-800 p-8 rounded-[2rem] border-4 border-neutral-700 max-w-2xl mx-auto shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500" />
+                <p className="text-2xl sm:text-3xl font-bold leading-snug" dangerouslySetInnerHTML={{ 
+                  __html: currentBlackCard?.text.replace(/_/g, `<span class="text-yellow-400 underline decoration-4 underline-offset-4">${winner.cards[0]}</span>`) 
+                }} />
+                {currentBlackCard.pick > 1 && winner.cards[1] && (
+                   <p className="mt-6 text-2xl sm:text-3xl font-bold text-yellow-400 underline decoration-4 underline-offset-4">{winner.cards[1]}</p>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={nextTurn}
+              className="px-16 py-5 bg-white text-black font-black text-lg rounded-2xl shadow-2xl hover:bg-neutral-200 transition-all active:scale-95 flex items-center gap-3 border-b-4 border-neutral-300"
+            >
+              NEXT ROUND <ChevronRight size={24} />
+            </button>
+          </div>
+        )}
+
+      </main>
+
+      <footer className="p-4 text-center opacity-30 pointer-events-none">
+        <p className="text-[9px] font-black uppercase tracking-[0.2em]">A PARTY GAME FOR HORRIBLE PEOPLE</p>
+      </footer>
+
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @keyframes bounce-in {
+          0% { transform: scale(0.3); opacity: 0; }
+          50% { transform: scale(1.05); opacity: 1; }
+          70% { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
+        .animate-bounce-in {
+          animation: bounce-in 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default App;
