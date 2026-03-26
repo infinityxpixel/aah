@@ -3,119 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>App Against Humanity</title>
-    
-    <!-- Favicon: Small Black Card on White Background -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='white'/><rect x='25' y='20' width='50' height='65' rx='8' fill='black'/></svg>">
-
-    <!-- External Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
-        
-        body { 
-            font-family: 'Ubuntu', sans-serif; 
-            background-color: #111; 
-            margin: 0;
-            padding: 0;
-            color: white;
-            overflow-x: hidden;
-        }
-        
-        .black-card {
-            background-color: #000;
-            border: 2px solid #262626;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            width: 18.9rem;
-            height: 25.2rem;
-        }
-        
-        .white-card {
-            background-color: #fff;
-            color: #000;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            min-height: 14rem;
-        }
-
-        .black-card-text {
-            font-size: 1.65rem;
-            line-height: 1.2;
-            font-weight: 700;
-        }
-
-        .white-card-text {
-            font-size: 1.1rem;
-            line-height: 1.3;
-            font-weight: 700;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 10px;
-        }
-        
-        .animate-pop {
-            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        
-        @keyframes pop {
-            0% { transform: scale(0.92); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .winner-glow {
-            box-shadow: 0 0 40px rgba(255, 255, 255, 0.05);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+        body { font-family: 'Ubuntu', sans-serif; background-color: #111; color: white; margin: 0; }
+        .black-card { background-color: #000; border: 2px solid #262626; width: 18.9rem; height: 25.2rem; }
+        .white-card { background-color: #fff; color: #000; min-height: 14rem; cursor: pointer; }
+        .animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes pop { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
-        
-        // --- Icons ---
-        const Trophy = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-        );
-        const Play = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
-        const RotateCcw = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
-        const Lock = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-neutral-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+
+        // --- UI Components ---
+        const Trophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
         const ChevronRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
 
         const CARDS_DATABASE = {
             blackCards: [
-                { text: "What's that smell?" }, { text: "I drink to forget _." }, { text: "What's my secret superpower?" },
-                { text: "Why am I sticky?" }, { text: "Maybe she's born with it. Maybe it's _." }, { text: "I got 99 problems but _ ain't one." },
-                { text: "What is Batman's guilty pleasure?" }, { text: "Why am I so broke?" }, { text: "What gives me uncontrollable gas?" },
-                { text: "What's the next Happy Meal toy?" }, { text: "Science will never explain _." }, { text: "TSA guidelines now prohibit _ on airplanes." },
-                { text: "What's a girl's best friend?" }, { text: "What's the gift that keeps on giving?" }, { text: "Next on ESPN2: The _ World Series." },
-                { text: "What would Grandma find disturbing, yet oddly charming?" }, { text: "White people like _." }, { text: "What did I get for Christmas?" },
-                { text: "My gym teacher got fired for _." }, { text: "What's my middle name?" }, { text: "The class field trip was ruined by _." },
-                { text: "What's the secret to a long-lasting marriage?" }, { text: "What's the new national anthem?" }, { text: "When I am President, I will create the Department of _." },
-                { text: "What's the best thing about being a billionaire?" }, { text: "Every family has a secret, ours is _." }, { text: "Wait, if you're here, then who's _?" },
-                { text: "What are my parents hiding from me?" }, { text: "Coming to Broadway this season: _: The Musical." }, { text: "He who controls _ controls the universe." }
+                { text: "What's that smell?", pick: 1 },
+                { text: "I drink to forget _.", pick: 1 },
+                { text: "What's my secret superpower?", pick: 1 },
+                { text: "In the distant future, historians will agree that _ was the beginning of the end.", pick: 1 },
+                { text: "Wait, if you're here, then who's _?", pick: 1 },
+                { text: "I got 99 problems but _ ain't one.", pick: 1 },
+                { text: "What is Batman's guilty pleasure?", pick: 1 },
+                { text: "What's a girl's best friend?", pick: 1 },
+                { text: "He who controls _ controls the universe.", pick: 1 },
+                { text: "What gives me uncontrollable gas?", pick: 1 },
+                { text: "What are my parents hiding from me?", pick: 1 },
+                { text: "Coming to Broadway this season: _: The Musical.", pick: 1 }
             ],
             whiteCards: [
-                "A bit of slap and tickle.", "Active listening.", "An oversized lollipop.", "Eating all of the cookies.", "Friendly fire.", "Grandma.", "Hormone injections.", "My soul.", "Natural selection.", "Old-people smell.", "Poor life choices.", "Puberty.", "The Pope.", "Waiting till marriage.", "Florida Man.", "Student loans.", "Existential dread.", "Taco Bell.", "A tiny horse.", "Tax fraud.", "Gluten-free bread.", "Meme culture.", "The truth.", "A lie.", "Actually taking candy from a baby.", "A middle-aged man on a roller coaster.", "A salty surprise.", "The glass ceiling.", "The Patriarchy.", "Goblins.", "Being fabulous.", "Passive-aggressive Post-it notes.", "The Kool-Aid Man.", "Self-loathing.", "A literal mountain of cocaine.", "Fancy feast.", "Justin Bieber.", "An honest-to-god miracle.", "Glitter.", "Slightly too much eye contact.", "Awkward silence.", "The smell of fear.", "Total control.", "A disappointment to my parents.", "Hot cheese.", "Bees?", "Finger painting.", "The middle class.", "Emotional baggage.", "The wifi being down.", "Clickbait.", "Mansplaining.", "Avocado toast.", "Social media validation.", "An unsolicited photo.", "A time-traveling paradox.", "Catfishing.", "The simulation crashing.", "Cryptocurrency scams.", "A mid-life crisis.", "The ghost of Christmas past.", "Pure unadulterated chaos.", "Gentrification.", "A participation trophy.", "The deep state.", "Climate change.", "The uncanny valley.", "An interpretive dance about capitalism.", "A sentient sourdough starter.", "The 1%.", "A weirdly specific fetish.", "Being a functional adult.", "The constant screaming in my head.", "A long, sad look at a mirror.", "An aggressive squirrel.", "The sound of one hand clapping.", "Infinite loops.", "A glitch in the Matrix.", "Unfiltered thoughts.", "The taste of regret.", "A suspiciously cheap lawyer.", "Identity theft.", "A really bad tattoo.", "Aggressive yoga.", "The sheer audacity.", "A well-timed sound effect.", "An unexpected pregnancy.", "The French.", "A black hole.", "Spontaneous human combustion.", "A dramatic reenactment.", "The concept of time.", "A cursed image.", "Modern art.", "A poorly phrased compliment.", "A surprise party that no one attended.", "My inner demons.", "A bag of magic beans.", "An overpriced scented candle.", "A passive-aggressive email.", "The five-second rule.", "A microwave burrito.", "The subtle art of not giving a hoot.", "A perfectly executed high-five.", "The feeling of wet socks.", "A sudden realization.", "A box within a box.", "The screams of a thousand children.", "Nickelback.", "Kanye West.", "The entire Mormon Tabernacle Choir.", "Soup that's a little too hot.", "A bucket of fish heads.", "Exactly what you'd expect.", "A tiny, flying horse.", "The sweet, sweet taste of revenge."
+                "Tax fraud.", "Aggressive yoga.", "A salty surprise.", "Existential dread.", "Florida Man.", "Bees?", "The Patriarchy.", "Gluten-free bread.", "Passive-aggressive Post-it notes.", "The Kool-Aid Man.", "A literal mountain of cocaine.", "Self-loathing.", "A disappointment to my parents.", "Taco Bell.", "A tiny horse.", "Mansplaining.", "Avocado toast.", "Social media validation.", "An unsolicited photo.", "The simulation crashing.", "Cryptocurrency scams."
             ]
         };
 
-        const MAX_ROUNDS = 10;
+        const MAX_ROUNDS = 5; // Reduced for quick testing
 
         const App = () => {
             const [gameState, setGameState] = useState('auth');
             const [authInput, setAuthInput] = useState({ username: '', password: '' });
-            const [error, setError] = useState('');
-
             const [players, setPlayers] = useState([
                 { id: 1, name: 'Player 1', score: 0, hand: [] },
                 { id: 2, name: 'Player 2', score: 0, hand: [] }
@@ -126,37 +64,38 @@
             const [allSubmissions, setAllSubmissions] = useState([]);
             const [selectedWhiteCard, setSelectedWhiteCard] = useState(null);
             const [deck, setDeck] = useState({ black: [], white: [] });
-            
             const [votingRoundIndex, setVotingRoundIndex] = useState(1);
 
-            const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
+            // --- THE FIX: Answer Rendering Logic ---
+            const renderCardContent = (blackText, whiteText) => {
+                if (!whiteText) return blackText;
+                const formattedWhite = `<span class="bg-white text-black px-3 py-1 rounded-lg mx-1 inline-block transform -rotate-1 shadow-md font-bold">${whiteText}</span>`;
+                
+                // If black card has an underscore, replace it.
+                if (blackText.includes('_')) {
+                    return blackText.replace('_', formattedWhite);
+                }
+                // If no underscore (Question type), append it to the end.
+                return `${blackText} ${formattedWhite}`;
+            };
 
             const handleLogin = (e) => {
                 e.preventDefault();
                 const key = "cmVlc2hvZg==";
                 if (btoa(authInput.username) === key && btoa(authInput.password) === key) {
                     setGameState('setup');
-                } else {
-                    setError('Invalid credentials.');
                 }
             };
 
             const startGame = () => {
-                const whiteDeck = shuffle(CARDS_DATABASE.whiteCards);
-                const blackDeck = shuffle(CARDS_DATABASE.blackCards);
+                const whiteDeck = [...CARDS_DATABASE.whiteCards].sort(() => Math.random() - 0.5);
+                const blackDeck = [...CARDS_DATABASE.blackCards].sort(() => Math.random() - 0.5);
                 
-                const initialPlayers = players.map((p, idx) => ({
-                    ...p, score: 0, hand: whiteDeck.slice(idx * 15, (idx * 15) + 15) 
-                }));
-
-                const selectedBlackCards = blackDeck.slice(0, MAX_ROUNDS);
-
-                setDeck({ 
-                    white: whiteDeck.slice(30), 
-                    black: selectedBlackCards 
-                });
-                setPlayers(initialPlayers);
-                setRoundBlackCard(selectedBlackCards[0]);
+                setPlayers(players.map((p, idx) => ({
+                    ...p, score: 0, hand: whiteDeck.slice(idx * 8, (idx * 8) + 8) 
+                })));
+                setDeck({ white: whiteDeck.slice(16), black: blackDeck.slice(0, MAX_ROUNDS) });
+                setRoundBlackCard(blackDeck[0]);
                 setRoundNumber(1);
                 setCurrentPlayerIdx(0);
                 setAllSubmissions([]);
@@ -165,264 +104,151 @@
             };
 
             const submitResponse = () => {
-                // TRIPLE TEST FIX: Explicitly capture state at time of submission
                 const newSub = {
-                    id: `round-${roundNumber}-p${currentPlayerIdx}-${Date.now()}`,
+                    id: `r${roundNumber}-p${currentPlayerIdx}-${Date.now()}`,
                     playerIdx: currentPlayerIdx,
                     playerName: players[currentPlayerIdx].name,
-                    blackCard: { ...roundBlackCard },
+                    blackCard: roundBlackCard,
                     whiteCard: selectedWhiteCard,
                     round: roundNumber,
                     winner: false
                 };
                 
-                const updatedPlayers = players.map((p, idx) => 
-                    idx === currentPlayerIdx ? { ...p, hand: p.hand.filter(c => c !== selectedWhiteCard) } : p
-                );
-                
-                setPlayers(updatedPlayers);
                 setAllSubmissions(prev => [...prev, newSub]);
+                setPlayers(players.map((p, idx) => 
+                    idx === currentPlayerIdx ? { ...p, hand: p.hand.filter(c => c !== selectedWhiteCard) } : p
+                ));
                 setSelectedWhiteCard(null);
 
                 if (currentPlayerIdx === 0) {
                     setCurrentPlayerIdx(1);
+                } else if (roundNumber < MAX_ROUNDS) {
+                    const next = roundNumber + 1;
+                    setRoundNumber(next);
+                    setCurrentPlayerIdx(0);
+                    setRoundBlackCard(deck.black[next - 1]);
                 } else {
-                    if (roundNumber < MAX_ROUNDS) {
-                        const nextRoundNum = roundNumber + 1;
-                        setRoundNumber(nextRoundNum);
-                        setCurrentPlayerIdx(0);
-                        setRoundBlackCard(deck.black[nextRoundNum - 1]);
-                    } else {
-                        setGameState('judging');
-                    }
+                    setGameState('judging');
                 }
             };
 
-            const voteForSubmission = (submissionId) => {
-                // Update winners in submissions list
+            const voteForSubmission = (id) => {
                 setAllSubmissions(prev => {
-                    const updated = prev.map(sub => 
-                        sub.id === submissionId ? { ...sub, winner: true } : sub
-                    );
-                    
-                    // Update scores based on the new winner
-                    const winningSub = updated.find(s => s.id === submissionId);
-                    setPlayers(prevPlayers => {
-                        const newPlayers = [...prevPlayers];
-                        newPlayers[winningSub.playerIdx].score += 1;
-                        return newPlayers;
-                    });
-
+                    const updated = prev.map(s => s.id === id ? { ...s, winner: true } : s);
+                    const winnerSub = updated.find(s => s.id === id);
+                    setPlayers(ps => ps.map((p, i) => i === winnerSub.playerIdx ? { ...p, score: p.score + 1 } : p));
                     return updated;
                 });
 
-                if (votingRoundIndex < MAX_ROUNDS) {
-                    setVotingRoundIndex(prev => prev + 1);
-                } else {
-                    setGameState('winner');
-                }
+                if (votingRoundIndex < MAX_ROUNDS) setVotingRoundIndex(v => v + 1);
+                else setGameState('winner');
             };
 
-            // VERIFICATION: Filter strictly for the current voting round
-            const currentVotingGroup = useMemo(() => {
-                return allSubmissions.filter(sub => sub.round === votingRoundIndex);
-            }, [allSubmissions, votingRoundIndex]);
+            const currentVotingGroup = useMemo(() => 
+                allSubmissions.filter(s => s.round === votingRoundIndex), 
+            [allSubmissions, votingRoundIndex]);
 
+            // --- Views ---
             if (gameState === 'auth') return (
-                <div className="min-h-screen flex items-center justify-center p-6 bg-neutral-900">
-                    <form onSubmit={handleLogin} className="max-w-sm w-full bg-neutral-800 p-10 rounded-[40px] border border-neutral-700 shadow-2xl space-y-6 text-center animate-pop">
-                        <div className="flex justify-center"><Lock /></div>
-                        <h2 className="text-3xl font-black uppercase italic tracking-tighter">Private Entry</h2>
-                        <div className="space-y-4 text-left">
-                            <div>
-                                <label className="text-[10px] font-black text-neutral-500 uppercase ml-4">Username</label>
-                                <input 
-                                    type="text"
-                                    className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 font-bold text-white outline-none focus:ring-2 focus:ring-white transition-all mt-1" 
-                                    value={authInput.username}
-                                    onChange={(e) => setAuthInput({...authInput, username: e.target.value})}
-                                />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-black text-neutral-500 uppercase ml-4">Password</label>
-                                <input 
-                                    type="password"
-                                    className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 font-bold text-white outline-none focus:ring-2 focus:ring-white transition-all mt-1" 
-                                    value={authInput.password}
-                                    onChange={(e) => setAuthInput({...authInput, password: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                        {error && <p className="text-red-500 text-xs font-bold">{error}</p>}
-                        <button type="submit" className="w-full bg-white text-black py-5 rounded-2xl font-black text-xl hover:bg-neutral-200 active:scale-95 transition-all mt-4 uppercase tracking-tighter">
-                            Login
-                        </button>
+                <div className="min-h-screen flex items-center justify-center bg-neutral-900 p-6">
+                    <form onSubmit={handleLogin} className="bg-neutral-800 p-10 rounded-[40px] border border-neutral-700 w-full max-w-sm text-center animate-pop">
+                        <h2 className="text-3xl font-black uppercase italic mb-8">Auth Required</h2>
+                        <input type="text" placeholder="User" className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 mb-4" onChange={e => setAuthInput({...authInput, username: e.target.value})} />
+                        <input type="password" placeholder="Pass" className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 mb-8" onChange={e => setAuthInput({...authInput, password: e.target.value})} />
+                        <button type="submit" className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase">Enter</button>
                     </form>
                 </div>
             );
 
             if (gameState === 'setup') return (
-                <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-neutral-900">
-                    <div className="max-w-md w-full text-center space-y-10 animate-pop">
-                        <div className="space-y-2">
-                            <h1 className="text-8xl font-black tracking-tighter uppercase italic text-white drop-shadow-lg leading-none">APP</h1>
-                            <p className="text-neutral-500 font-bold uppercase tracking-[0.3em] text-[10px]">Against Humanity</p>
-                        </div>
-                        <div className="bg-neutral-800 p-8 rounded-[40px] border border-neutral-700 shadow-2xl space-y-6">
-                            {players.map((p, i) => (
-                                <div key={p.id} className="text-left">
-                                    <label className="text-[10px] font-black text-neutral-500 uppercase ml-4">Player {i+1}</label>
-                                    <input 
-                                        className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 font-bold text-white outline-none focus:ring-2 focus:ring-white transition-all mt-1" 
-                                        value={p.name} 
-                                        onChange={(e) => {
-                                            const n = [...players]; n[i].name = e.target.value; setPlayers(n);
-                                        }} 
-                                    />
-                                </div>
-                            ))}
-                            <button onClick={startGame} className="w-full bg-white text-black py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 hover:bg-neutral-200 active:scale-95 transition-all mt-4 uppercase tracking-tighter">
-                                Start Battle <Play />
-                            </button>
-                        </div>
+                <div className="min-h-screen flex items-center justify-center bg-neutral-900 p-6">
+                    <div className="bg-neutral-800 p-10 rounded-[40px] border border-neutral-700 w-full max-w-md text-center animate-pop">
+                        <h1 className="text-6xl font-black italic mb-10">AAH</h1>
+                        {players.map((p, i) => (
+                            <input key={p.id} className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 mb-4 font-bold" value={p.name} onChange={e => {
+                                const n = [...players]; n[i].name = e.target.value; setPlayers(n);
+                            }} />
+                        ))}
+                        <button onClick={startGame} className="w-full bg-white text-black py-5 rounded-2xl font-black text-xl uppercase mt-4">Start Game</button>
                     </div>
                 </div>
             );
 
             if (gameState === 'play') return (
-                <div className="min-h-screen flex flex-col">
-                    <header className="p-4 border-b border-neutral-800 flex justify-between bg-neutral-900/90 sticky top-0 z-50 backdrop-blur-md">
-                        <div className="font-black text-2xl tracking-tighter italic">AAH</div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 self-center bg-neutral-800 px-4 py-2 rounded-full border border-neutral-700">
-                            ROUND {roundNumber} / {MAX_ROUNDS} • <span className="text-white uppercase tracking-normal">{players[currentPlayerIdx].name}'s Turn</span>
+                <div className="min-h-screen flex flex-col pb-32">
+                    <header className="p-6 border-b border-neutral-800 flex justify-between items-center">
+                        <div className="font-black text-2xl italic">AAH</div>
+                        <div className="bg-neutral-800 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            Round {roundNumber} • {players[currentPlayerIdx].name}'s Turn
                         </div>
                     </header>
-                    <main className="p-6 max-w-[90rem] mx-auto w-full flex flex-col items-center gap-12 pb-40">
-                        <div className="black-card rounded-[32px] p-8 flex flex-col justify-between transform -rotate-1 animate-pop">
-                            <p className="black-card-text" dangerouslySetInnerHTML={{ __html: roundBlackCard?.text.replace(/_/g, '<span class="border-b-4 border-white px-8 mx-1 inline-block min-w-[100px]"></span>') }} />
-                            <span className="text-[11px] font-black opacity-30 uppercase tracking-widest">App Against Humanity</span>
+                    <main className="p-8 flex flex-col items-center gap-12 max-w-7xl mx-auto">
+                        <div className="black-card rounded-[32px] p-8 flex flex-col justify-between transform -rotate-1">
+                            <p className="text-2xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: renderCardContent(roundBlackCard.text, "") }} />
+                            <span className="text-[10px] font-black opacity-30 uppercase">App Against Humanity</span>
                         </div>
-                        
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 w-full">
-                            {players[currentPlayerIdx].hand.map((card, i) => (
-                                <button 
-                                    key={`hand-${currentPlayerIdx}-${card}-${i}`} 
-                                    onClick={() => setSelectedWhiteCard(card)} 
-                                    className={`white-card p-6 text-left font-bold rounded-2xl transition-all flex flex-col justify-between hover:-translate-y-2 active:scale-95 ${selectedWhiteCard === card ? 'ring-8 ring-blue-500 scale-105 z-10' : 'opacity-95'}`}
-                                >
-                                    <span className="white-card-text">{card}</span>
-                                    <span className="text-[9px] font-black opacity-20 uppercase tracking-tighter">AAH</span>
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {players[currentPlayerIdx].hand.map(card => (
+                                <button key={card} onClick={() => setSelectedWhiteCard(card)} className={`white-card p-5 text-left rounded-2xl transition-all ${selectedWhiteCard === card ? 'ring-8 ring-blue-500 scale-105 z-10' : 'opacity-90 hover:-translate-y-1'}`}>
+                                    <span className="font-bold text-lg">{card}</span>
                                 </button>
                             ))}
                         </div>
                     </main>
-                    <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center z-50">
-                        <button 
-                            disabled={!selectedWhiteCard} 
-                            onClick={submitResponse} 
-                            className="w-full max-w-sm py-6 bg-white text-black font-black rounded-3xl disabled:opacity-20 uppercase shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:bg-neutral-200 active:scale-95 transition-all text-2xl tracking-tighter"
-                        >
-                            {selectedWhiteCard ? 'Confirm Card' : 'Select an Answer'}
-                        </button>
+                    <div className="fixed bottom-0 w-full p-8 bg-gradient-to-t from-black flex justify-center">
+                        <button disabled={!selectedWhiteCard} onClick={submitResponse} className="w-full max-w-sm py-6 bg-white text-black font-black rounded-3xl disabled:opacity-20 uppercase text-xl">Confirm Selection</button>
                     </div>
                 </div>
             );
 
-            if (gameState === 'judging') {
-                return (
-                    <div key={`voting-round-${votingRoundIndex}`} className="min-h-screen p-6 max-w-5xl mx-auto flex flex-col items-center justify-center space-y-12 animate-pop">
-                        <div className="text-center space-y-4">
-                            <div className="inline-block bg-neutral-800 px-6 py-2 rounded-full border border-neutral-700 text-xs font-black uppercase tracking-widest text-neutral-400">
-                                Judging Round {votingRoundIndex} of {MAX_ROUNDS}
-                            </div>
-                            <h2 className="text-5xl font-black italic tracking-tighter uppercase leading-none">The Grand Jury</h2>
-                        </div>
-                        
-                        <div className="w-full max-w-4xl space-y-8">
-                           <div className="grid md:grid-cols-2 gap-8">
-                                {currentVotingGroup.map((sub) => (
-                                    <div key={sub.id} className="group relative">
-                                        <div className="absolute -top-4 left-6 bg-white text-black px-4 py-1 rounded-full text-[10px] font-black uppercase z-20">Option</div>
-                                        <button 
-                                            onClick={() => voteForSubmission(sub.id)}
-                                            className="w-full p-10 bg-neutral-800 border-2 border-neutral-700 rounded-[40px] text-left transition-all hover:border-white hover:scale-[1.02] active:scale-95 flex flex-col justify-between h-full min-h-[300px]"
-                                        >
-                                            <p className="text-2xl font-bold leading-relaxed mb-10" 
-                                               dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-4 py-1 rounded-xl mx-1 inline-block transform -rotate-1">${sub.whiteCard}</span>`) }} 
-                                            />
-                                            <div className="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
-                                                <span className="font-black uppercase text-xs tracking-tighter">Choose this combo</span>
-                                                <ChevronRight />
-                                            </div>
-                                        </button>
-                                    </div>
-                                ))}
-                           </div>
-                        </div>
-                        
-                        <div className="w-full max-w-xl h-2 bg-neutral-800 rounded-full overflow-hidden">
-                            <div 
-                                className="h-full bg-white transition-all duration-500" 
-                                style={{ width: `${(votingRoundIndex / MAX_ROUNDS) * 100}%` }}
-                            />
-                        </div>
+            if (gameState === 'judging') return (
+                <div className="min-h-screen p-8 flex flex-col items-center justify-center space-y-12 animate-pop">
+                    <div className="text-center">
+                        <div className="text-xs font-black uppercase text-neutral-500 mb-2">Grand Jury - Round {votingRoundIndex}</div>
+                        <h2 className="text-5xl font-black italic uppercase">Choose the Winner</h2>
                     </div>
-                );
-            }
-
-            if (gameState === 'winner') {
-                const winner = players[0].score >= players[1].score ? players[0] : players[1];
-                const isTie = players[0].score === players[1].score;
-                const winningSubmissions = allSubmissions.filter(s => s.winner).sort((a,b) => a.round - b.round);
-
-                return (
-                    <div className="min-h-screen flex flex-col p-8 md:p-12 space-y-16 custom-scrollbar overflow-y-auto animate-pop">
-                        <div className="flex flex-col items-center text-center space-y-4 pt-10">
-                            <Trophy />
-                            <h1 className="text-7xl font-black uppercase italic tracking-tighter leading-none">
-                                {isTie ? "It's a Draw" : `${winner.name} Wins!`}
-                            </h1>
-                            <div className="flex gap-16 pt-8">
-                                {players.map(p => (
-                                    <div key={p.id} className="space-y-1">
-                                        <div className="text-[11px] text-neutral-500 font-black uppercase tracking-widest">{p.name}</div>
-                                        <div className="text-7xl font-black">{p.score}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="max-w-4xl mx-auto w-full space-y-8">
-                            <h2 className="text-3xl font-black italic uppercase tracking-tighter border-b border-neutral-800 pb-4">Hall of Fame</h2>
-                            <div className="grid gap-8">
-                                {winningSubmissions.map((sub, i) => (
-                                    <div key={sub.id} className="bg-neutral-800/50 p-10 rounded-[40px] border border-neutral-800 flex flex-col md:flex-row md:items-center gap-8 winner-glow animate-pop" style={{ animationDelay: `${i * 0.1}s` }}>
-                                        <div className="text-4xl font-black opacity-10 italic">#{sub.round}</div>
-                                        <div className="flex-1">
-                                            <p className="text-3xl font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: sub.blackCard.text.replace(/_/g, `<span class="bg-white text-black px-4 py-1.5 rounded-xl mx-1 shadow-md inline-block transform -rotate-1">${sub.whiteCard}</span>`) }} />
-                                            <div className="flex justify-between items-center mt-6">
-                                                <div className="text-[11px] font-black uppercase tracking-[0.2em] text-neutral-500">Won by {sub.playerName}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="flex justify-center pb-20">
-                            <button onClick={() => setGameState('setup')} className="bg-white text-black px-20 py-8 rounded-3xl font-black text-3xl flex items-center gap-5 hover:bg-neutral-200 transition-all active:scale-95 shadow-2xl uppercase tracking-tighter">
-                                Play Again <RotateCcw />
+                    <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl">
+                        {currentVotingGroup.map(sub => (
+                            <button key={sub.id} onClick={() => voteForSubmission(sub.id)} className="p-12 bg-neutral-800 border-2 border-neutral-700 rounded-[40px] text-left hover:border-white transition-all group">
+                                <p className="text-3xl font-bold leading-snug mb-8" dangerouslySetInnerHTML={{ __html: renderCardContent(sub.blackCard.text, sub.whiteCard) }} />
+                                <div className="flex items-center gap-2 text-neutral-500 group-hover:text-white font-black uppercase text-xs">Select this combo <ChevronRight /></div>
                             </button>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            if (gameState === 'winner') return (
+                <div className="min-h-screen p-12 flex flex-col space-y-16 custom-scrollbar overflow-y-auto animate-pop">
+                    <div className="text-center flex flex-col items-center gap-4">
+                        <Trophy />
+                        <h1 className="text-7xl font-black uppercase italic tracking-tighter">Results</h1>
+                        <div className="flex gap-12 mt-4">
+                            {players.map(p => <div key={p.id} className="text-center"><div className="text-[10px] font-black uppercase text-neutral-500">{p.name}</div><div className="text-6xl font-black">{p.score}</div></div>)}
                         </div>
                     </div>
-                );
-            }
+                    <div className="max-w-4xl mx-auto w-full space-y-6">
+                        <h2 className="text-2xl font-black uppercase italic border-b border-neutral-800 pb-2">Winning Combos</h2>
+                        {allSubmissions.filter(s => s.winner).sort((a,b) => a.round - b.round).map(sub => (
+                            <div key={sub.id} className="bg-neutral-800/50 p-10 rounded-[40px] border border-neutral-800 flex items-center gap-10 animate-pop">
+                                <div className="text-4xl font-black opacity-10">#{sub.round}</div>
+                                <div className="flex-1">
+                                    <p className="text-3xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: renderCardContent(sub.blackCard.text, sub.whiteCard) }} />
+                                    <div className="text-[10px] font-black uppercase text-neutral-500 mt-4 tracking-widest">Won by {sub.playerName}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-center pb-20">
+                        <button onClick={() => setGameState('setup')} className="bg-white text-black px-16 py-6 rounded-3xl font-black text-2xl uppercase shadow-2xl">New Battle</button>
+                    </div>
+                </div>
+            );
 
             return null;
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
