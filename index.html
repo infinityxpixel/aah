@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>App Against Humanity</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='white'/><rect x='25' y='20' width='50' height='65' rx='8' fill='black'/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,13 +11,45 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
-        body { font-family: 'Ubuntu', sans-serif; background-color: #111; color: white; margin: 0; overflow-x: hidden; }
-        .black-card { background-color: #000; border: 2px solid #262626; width: 18.9rem; height: 25.2rem; }
-        .white-card { background-color: #fff; color: #000; min-height: 14rem; cursor: pointer; transition: all 0.2s ease; }
+        body { 
+            font-family: 'Ubuntu', sans-serif; 
+            background-color: #111; 
+            color: white; 
+            margin: 0; 
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Responsive Card Sizing */
+        .black-card { 
+            background-color: #000; 
+            border: 2px solid #262626; 
+            width: 100%;
+            max-width: 18.9rem; 
+            aspect-ratio: 3/4;
+            height: auto;
+        }
+        
+        .white-card { 
+            background-color: #fff; 
+            color: #000; 
+            min-height: 8rem; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        @media (min-width: 768px) {
+            .white-card { min-height: 14rem; }
+        }
+
         .animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes pop { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        
+        /* Mobile safe area padding */
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
 <body>
@@ -158,20 +190,12 @@
             const [deck, setDeck] = useState({ black: [], white: [] });
             const [votingRoundIndex, setVotingRoundIndex] = useState(1);
 
-            // --- THE FIX: Answer Rendering Logic ---
             const renderCardContent = (blackText, whiteText) => {
                 if (!whiteText) return blackText;
-                
-                // Styled white card component as string
-                const formattedWhite = `<span class="bg-white text-black px-3 py-1.5 rounded-xl mx-1 inline-block transform -rotate-1 shadow-lg font-black border-2 border-black/10 ring-1 ring-white/20">${whiteText}</span>`;
-                
-                // If black card has an underscore, replace it.
+                const formattedWhite = `<span class="bg-white text-black px-2 py-0.5 md:px-3 md:py-1.5 rounded-lg md:rounded-xl mx-1 inline-block transform -rotate-1 shadow-lg font-black border-2 border-black/10 ring-1 ring-white/20 whitespace-normal">${whiteText}</span>`;
                 if (blackText.includes('_')) {
-                    // Logic for double blanks in future (split by _, replace each)
                     return blackText.replace('_', formattedWhite);
                 }
-                
-                // If it's a question or statement without a blank, append to end
                 return `${blackText} ${formattedWhite}`;
             };
 
@@ -204,7 +228,7 @@
                     id: `r${roundNumber}-p${currentPlayerIdx}-${Date.now()}`,
                     playerIdx: currentPlayerIdx,
                     playerName: players[currentPlayerIdx].name,
-                    blackCard: { ...roundBlackCard }, // Clone to avoid reference issues
+                    blackCard: { ...roundBlackCard },
                     whiteCard: selectedWhiteCard,
                     round: roundNumber,
                     winner: false
@@ -218,11 +242,13 @@
 
                 if (currentPlayerIdx === 0) {
                     setCurrentPlayerIdx(1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else if (roundNumber < MAX_ROUNDS) {
                     const next = roundNumber + 1;
                     setRoundNumber(next);
                     setCurrentPlayerIdx(0);
                     setRoundBlackCard(deck.black[next - 1]);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                     setGameState('judging');
                 }
@@ -236,8 +262,12 @@
                     return updated;
                 });
 
-                if (votingRoundIndex < MAX_ROUNDS) setVotingRoundIndex(v => v + 1);
-                else setGameState('winner');
+                if (votingRoundIndex < MAX_ROUNDS) {
+                    setVotingRoundIndex(v => v + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    setGameState('winner');
+                }
             };
 
             const currentVotingGroup = useMemo(() => 
@@ -246,78 +276,78 @@
 
             // --- Views ---
             if (gameState === 'auth') return (
-                <div className="min-h-screen flex items-center justify-center bg-neutral-900 p-6">
-                    <form onSubmit={handleLogin} className="bg-neutral-800 p-10 rounded-[40px] border border-neutral-700 w-full max-w-sm text-center animate-pop shadow-2xl">
-                        <h2 className="text-3xl font-black uppercase italic mb-8 tracking-tighter">Identity Check</h2>
-                        <input type="text" placeholder="Username" className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 mb-4 focus:ring-2 ring-white/10 outline-none" onChange={e => setAuthInput({...authInput, username: e.target.value})} />
-                        <input type="password" placeholder="Password" className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 mb-8 focus:ring-2 ring-white/10 outline-none" onChange={e => setAuthInput({...authInput, password: e.target.value})} />
-                        <button type="submit" className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase hover:bg-neutral-200 transition-colors">Confirm</button>
+                <div className="min-h-screen flex items-center justify-center bg-neutral-900 p-4">
+                    <form onSubmit={handleLogin} className="bg-neutral-800 p-6 md:p-10 rounded-[32px] md:rounded-[40px] border border-neutral-700 w-full max-w-sm text-center animate-pop shadow-2xl">
+                        <h2 className="text-2xl md:text-3xl font-black uppercase italic mb-6 md:mb-8 tracking-tighter">Identity Check</h2>
+                        <input type="text" placeholder="Username" className="w-full bg-neutral-900 border border-neutral-700 rounded-xl md:rounded-2xl px-5 py-3 md:px-6 md:py-4 mb-3 md:mb-4 focus:ring-2 ring-white/10 outline-none" onChange={e => setAuthInput({...authInput, username: e.target.value})} />
+                        <input type="password" placeholder="Password" className="w-full bg-neutral-900 border border-neutral-700 rounded-xl md:rounded-2xl px-5 py-3 md:px-6 md:py-4 mb-6 md:mb-8 focus:ring-2 ring-white/10 outline-none" onChange={e => setAuthInput({...authInput, password: e.target.value})} />
+                        <button type="submit" className="w-full bg-white text-black py-4 rounded-xl md:rounded-2xl font-black uppercase hover:bg-neutral-200 transition-colors">Confirm</button>
                     </form>
                 </div>
             );
 
             if (gameState === 'setup') return (
-                <div className="min-h-screen flex items-center justify-center bg-neutral-900 p-6">
-                    <div className="bg-neutral-800 p-10 rounded-[40px] border border-neutral-700 w-full max-w-md text-center animate-pop">
-                        <h1 className="text-7xl font-black italic mb-10 tracking-tighter">AAH</h1>
-                        <p className="text-xs font-black text-neutral-500 uppercase mb-8 tracking-[0.2em]">Enter Player Names</p>
+                <div className="min-h-screen flex items-center justify-center bg-neutral-900 p-4">
+                    <div className="bg-neutral-800 p-6 md:p-10 rounded-[32px] md:rounded-[40px] border border-neutral-700 w-full max-w-md text-center animate-pop">
+                        <h1 className="text-5xl md:text-7xl font-black italic mb-8 md:mb-10 tracking-tighter">AAH</h1>
+                        <p className="text-[10px] font-black text-neutral-500 uppercase mb-6 md:mb-8 tracking-[0.2em]">Enter Player Names</p>
                         {players.map((p, i) => (
-                            <input key={p.id} className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl px-6 py-4 mb-4 font-bold text-center" value={p.name} onChange={e => {
+                            <input key={p.id} className="w-full bg-neutral-900 border border-neutral-700 rounded-xl md:rounded-2xl px-5 py-3 md:px-6 md:py-4 mb-3 md:mb-4 font-bold text-center" value={p.name} onChange={e => {
                                 const n = [...players]; n[i].name = e.target.value; setPlayers(n);
                             }} />
                         ))}
-                        <button onClick={startGame} className="w-full bg-white text-black py-5 rounded-2xl font-black text-xl uppercase mt-4 hover:scale-[1.02] transition-transform">Begin Game</button>
+                        <button onClick={startGame} className="w-full bg-white text-black py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl uppercase mt-4 hover:scale-[1.02] transition-transform">Begin Game</button>
                     </div>
                 </div>
             );
 
             if (gameState === 'play') return (
                 <div className="min-h-screen flex flex-col pb-32">
-                    <header className="p-6 border-b border-neutral-800 flex justify-between items-center backdrop-blur-md sticky top-0 z-50">
-                        <div className="font-black text-2xl italic">AAH</div>
-                        <div className="flex items-center gap-4">
-                            <div className="bg-neutral-800 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-neutral-700">
-                                Round {roundNumber}
+                    <header className="p-4 md:p-6 border-b border-neutral-800 flex justify-between items-center backdrop-blur-md sticky top-0 z-50 bg-neutral-900/80">
+                        <div className="font-black text-xl md:text-2xl italic">AAH</div>
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <div className="bg-neutral-800 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-neutral-700">
+                                R{roundNumber}
                             </div>
-                            <div className="text-sm font-bold text-neutral-400">
-                                {players[currentPlayerIdx].name}'s Turn
+                            <div className="text-xs md:text-sm font-bold text-neutral-400 truncate max-w-[100px] md:max-w-none">
+                                {players[currentPlayerIdx].name}
                             </div>
                         </div>
                     </header>
-                    <main className="p-8 flex flex-col items-center gap-12 max-w-7xl mx-auto">
-                        <div className="black-card rounded-[32px] p-8 flex flex-col justify-between transform -rotate-1 shadow-2xl">
-                            <p className="text-2xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: renderCardContent(roundBlackCard.text, "") }} />
+                    <main className="p-4 md:p-8 flex flex-col items-center gap-8 md:gap-12 max-w-7xl mx-auto w-full">
+                        <div className="black-card rounded-[24px] md:rounded-[32px] p-6 md:p-8 flex flex-col justify-between transform md:-rotate-1 shadow-2xl">
+                            <p className="text-xl md:text-2xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: renderCardContent(roundBlackCard.text, "") }} />
                             <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-black opacity-30 uppercase">App Against Humanity</span>
-                                <div className="w-8 h-10 border-2 border-white/20 rounded-md"></div>
+                                <span className="text-[9px] md:text-[10px] font-black opacity-30 uppercase">App Against Humanity</span>
+                                <div className="w-6 h-8 md:w-8 md:h-10 border-2 border-white/20 rounded-md"></div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 w-full">
                             {players[currentPlayerIdx].hand.map((card, idx) => (
-                                <button key={idx} onClick={() => setSelectedWhiteCard(card)} className={`white-card p-5 text-left rounded-2xl transition-all shadow-lg flex flex-col justify-between ${selectedWhiteCard === card ? 'ring-8 ring-white/30 scale-105 z-10 -translate-y-2' : 'hover:bg-neutral-100 hover:-translate-y-1'}`}>
-                                    <span className="font-bold text-lg leading-tight">{card}</span>
-                                    <span className="text-[9px] font-black opacity-20 uppercase mt-4">AAH</span>
+                                <button key={idx} onClick={() => setSelectedWhiteCard(card)} className={`white-card p-4 md:p-5 text-left rounded-xl md:rounded-2xl transition-all shadow-lg flex flex-col justify-between ${selectedWhiteCard === card ? 'ring-4 md:ring-8 ring-white/30 scale-[1.02] md:scale-105 z-10 -translate-y-1' : 'hover:bg-neutral-100'}`}>
+                                    <span className="font-bold text-sm md:text-lg leading-tight">{card}</span>
+                                    <span className="text-[8px] md:text-[9px] font-black opacity-20 uppercase mt-4">AAH</span>
                                 </button>
                             ))}
                         </div>
                     </main>
-                    <div className="fixed bottom-0 w-full p-8 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center z-50">
-                        <button disabled={!selectedWhiteCard} onClick={submitResponse} className="w-full max-w-sm py-6 bg-white text-black font-black rounded-[32px] disabled:opacity-20 uppercase text-xl shadow-2xl transition-all active:scale-95">Lock It In</button>
+                    <div className="fixed bottom-0 left-0 w-full p-4 md:p-8 bg-gradient-to-t from-black via-black/90 to-transparent flex justify-center z-50 safe-pb">
+                        <button disabled={!selectedWhiteCard} onClick={submitResponse} className="w-full max-w-sm py-4 md:py-6 bg-white text-black font-black rounded-2xl md:rounded-[32px] disabled:opacity-20 uppercase text-lg md:text-xl shadow-2xl transition-all active:scale-95">Lock It In</button>
                     </div>
                 </div>
             );
 
             if (gameState === 'judging') return (
-                <div className="min-h-screen p-8 flex flex-col items-center justify-center space-y-12 animate-pop">
-                    <div className="text-center">
-                        <div className="text-[10px] font-black uppercase text-neutral-500 mb-2 tracking-[0.3em]">Grand Jury Selection</div>
-                        <h2 className="text-5xl font-black italic uppercase tracking-tighter">Round {votingRoundIndex}</h2>
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-start md:justify-center space-y-8 md:space-y-12 animate-pop overflow-y-auto">
+                    <div className="text-center mt-8 md:mt-0">
+                        <div className="text-[9px] md:text-[10px] font-black uppercase text-neutral-500 mb-2 tracking-[0.3em]">Grand Jury Selection</div>
+                        <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter">Round {votingRoundIndex}</h2>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full max-w-5xl">
                         {currentVotingGroup.map(sub => (
-                            <button key={sub.id} onClick={() => voteForSubmission(sub.id)} className="p-12 bg-neutral-800 border-2 border-neutral-700 rounded-[40px] text-left hover:border-white transition-all group shadow-xl">
-                                <p className="text-3xl font-bold leading-snug mb-10" dangerouslySetInnerHTML={{ __html: renderCardContent(sub.blackCard.text, sub.whiteCard) }} />
-                                <div className="flex items-center gap-2 text-neutral-500 group-hover:text-white font-black uppercase text-xs tracking-widest transition-colors">
+                            <button key={sub.id} onClick={() => voteForSubmission(sub.id)} className="p-6 md:p-12 bg-neutral-800 border-2 border-neutral-700 rounded-[24px] md:rounded-[40px] text-left hover:border-white transition-all group shadow-xl active:scale-95">
+                                <p className="text-xl md:text-3xl font-bold leading-snug mb-6 md:mb-10" dangerouslySetInnerHTML={{ __html: renderCardContent(sub.blackCard.text, sub.whiteCard) }} />
+                                <div className="flex items-center gap-2 text-neutral-500 group-hover:text-white font-black uppercase text-[10px] tracking-widest transition-colors">
                                     Vote for this combo <ChevronRight />
                                 </div>
                             </button>
@@ -327,36 +357,36 @@
             );
 
             if (gameState === 'winner') return (
-                <div className="min-h-screen p-12 flex flex-col space-y-16 custom-scrollbar overflow-y-auto animate-pop pb-32">
-                    <div className="text-center flex flex-col items-center gap-4">
-                        <div className="mb-4"><Trophy /></div>
-                        <h1 className="text-7xl font-black uppercase italic tracking-tighter">Hall of Shame</h1>
-                        <div className="flex gap-12 mt-6 p-8 bg-neutral-800/50 rounded-[40px] border border-neutral-700">
+                <div className="min-h-screen p-4 md:p-12 flex flex-col space-y-8 md:space-y-16 custom-scrollbar overflow-y-auto animate-pop pb-32">
+                    <div className="text-center flex flex-col items-center gap-4 mt-4">
+                        <div className="mb-2 scale-75 md:scale-100"><Trophy /></div>
+                        <h1 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">Hall of Shame</h1>
+                        <div className="flex gap-4 md:gap-12 mt-4 p-4 md:p-8 bg-neutral-800/50 rounded-[24px] md:rounded-[40px] border border-neutral-700 w-full max-w-lg justify-around">
                             {players.map(p => (
-                                <div key={p.id} className="text-center min-w-[120px]">
-                                    <div className="text-[10px] font-black uppercase text-neutral-500 tracking-widest mb-1">{p.name}</div>
-                                    <div className="text-6xl font-black tracking-tighter">{p.score}</div>
+                                <div key={p.id} className="text-center min-w-[80px] md:min-w-[120px]">
+                                    <div className="text-[8px] md:text-[10px] font-black uppercase text-neutral-500 tracking-widest mb-1 truncate px-2">{p.name}</div>
+                                    <div className="text-4xl md:text-6xl font-black tracking-tighter">{p.score}</div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <div className="max-w-4xl mx-auto w-full space-y-6">
-                        <h2 className="text-xs font-black uppercase italic text-neutral-500 tracking-[0.4em] mb-4 text-center">Historical Submissions</h2>
+                    <div className="max-w-4xl mx-auto w-full space-y-4 md:space-y-6">
+                        <h2 className="text-[10px] font-black uppercase italic text-neutral-500 tracking-[0.4em] mb-2 text-center">Historical Submissions</h2>
                         {allSubmissions.filter(s => s.winner).sort((a,b) => a.round - b.round).map(sub => (
-                            <div key={sub.id} className="bg-neutral-800/30 p-10 rounded-[40px] border border-neutral-800 flex items-center gap-10 animate-pop transition-colors hover:bg-neutral-800/50">
-                                <div className="text-5xl font-black opacity-10 italic">#{sub.round}</div>
+                            <div key={sub.id} className="bg-neutral-800/30 p-6 md:p-10 rounded-[24px] md:rounded-[40px] border border-neutral-800 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-10 animate-pop transition-colors hover:bg-neutral-800/50">
+                                <div className="text-3xl md:text-5xl font-black opacity-10 italic">#{sub.round}</div>
                                 <div className="flex-1">
-                                    <p className="text-3xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: renderCardContent(sub.blackCard.text, sub.whiteCard) }} />
-                                    <div className="flex items-center gap-3 mt-6">
-                                        <div className="h-0.5 w-6 bg-blue-500"></div>
-                                        <div className="text-[10px] font-black uppercase text-blue-500/80 tracking-widest">Masterpiece by {sub.playerName}</div>
+                                    <p className="text-xl md:text-3xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: renderCardContent(sub.blackCard.text, sub.whiteCard) }} />
+                                    <div className="flex items-center gap-3 mt-4 md:mt-6">
+                                        <div className="h-0.5 w-4 md:w-6 bg-blue-500"></div>
+                                        <div className="text-[8px] md:text-[10px] font-black uppercase text-blue-500/80 tracking-widest">Masterpiece by {sub.playerName}</div>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <div className="fixed bottom-0 left-0 w-full flex justify-center p-8 bg-gradient-to-t from-black z-50">
-                        <button onClick={() => setGameState('setup')} className="bg-white text-black px-20 py-6 rounded-[32px] font-black text-2xl uppercase shadow-2xl hover:scale-105 transition-transform active:scale-95">Reset Simulation</button>
+                    <div className="fixed bottom-0 left-0 w-full flex justify-center p-4 md:p-8 bg-gradient-to-t from-black z-50 safe-pb">
+                        <button onClick={() => setGameState('setup')} className="bg-white text-black px-12 md:px-20 py-4 md:py-6 rounded-2xl md:rounded-[32px] font-black text-xl md:text-2xl uppercase shadow-2xl hover:scale-105 transition-transform active:scale-95 w-full max-w-sm">New Simulation</button>
                     </div>
                 </div>
             );
